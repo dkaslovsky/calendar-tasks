@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+
+	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
 )
 
 type Monthly struct {
@@ -35,14 +37,10 @@ func (m *Monthly) DaysFrom(t time.Time) int {
 	if diff >= 0 {
 		return diff
 	}
-	return diff + 31 // get days in current month instead of hardcoded 31
+	return diff + calendar.DaysInMonth(t)
 }
 
 func (m *Monthly) String() string {
 	s, _ := json.MarshalIndent(m, "", "\t")
 	return string(s)
-}
-
-func (m *Monthly) GetText() string {
-	return m.Text
 }
