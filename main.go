@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dkaslovsky/calendar-tasks/pkg/filter"
 	"github.com/dkaslovsky/calendar-tasks/pkg/tasks"
 )
 
@@ -15,31 +16,17 @@ func main() {
 	rs := days()
 	//rs := months()
 
-	upcoming := make(map[int][]taskItem)
+	f := filter.New(now)
 	for _, r := range rs {
-		appendUpcoming(upcoming, r, now)
+		f.Add(r)
 	}
 
-	for until, rr := range upcoming {
-		fmt.Println(until)
-		for _, r := range rr {
-			fmt.Println(r)
+	for day, tasks := range f.GetTasksGrouped(10) {
+		fmt.Printf("Day = %d\n", day)
+		for _, task := range tasks {
+			fmt.Println(task)
 		}
-		fmt.Print("--------\n")
 	}
-}
-
-type taskItem interface {
-	DaysFrom(time.Time) int
-	String() string
-}
-
-func appendUpcoming(upcoming map[int][]taskItem, r taskItem, now time.Time) {
-	until := r.DaysFrom(now)
-	if _, ok := upcoming[until]; !ok {
-		upcoming[until] = []taskItem{}
-	}
-	upcoming[until] = append(upcoming[until], r)
 }
 
 func days() []*tasks.Daily {
