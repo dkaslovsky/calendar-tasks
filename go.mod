@@ -1,3 +1,3 @@
-module github.com/dkaslovsky/reminders
+module github.com/dkaslovsky/calendar-tasks
 
 go 1.16

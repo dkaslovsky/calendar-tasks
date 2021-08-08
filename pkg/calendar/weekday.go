@@ -1,4 +1,4 @@
-package weekday
+package calendar
 
 import (
 	"fmt"
@@ -16,8 +16,8 @@ func init() {
 	}
 }
 
-// Parse converts a string to its corresponding time.Weekday
-func Parse(s string) (time.Weekday, error) {
+// ParseWeekday converts a string to its corresponding time.Weekday
+func ParseWeekday(s string) (time.Weekday, error) {
 	var day time.Weekday
 	day, ok := weekdays[strings.ToLower(s)]
 	if !ok {
@@ -26,8 +26,8 @@ func Parse(s string) (time.Weekday, error) {
 	return day, nil
 }
 
-// DaysBetween returns the number of days between two time.Weekdays
-func DaysBetween(now, target time.Weekday) int {
+// DaysBetweenWeekdays returns the number of days between two time.Weekdays
+func DaysBetweenWeekdays(now, target time.Weekday) int {
 	diff := int(target - now)
 	if diff >= 0 {
 		return diff

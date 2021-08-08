@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dkaslovsky/reminders/pkg/reminders"
+	"github.com/dkaslovsky/calendar-tasks/pkg/tasks"
 )
 
 func main() {
@@ -45,7 +45,7 @@ func appendUpcoming(upcoming map[int][]string, r reminder, now time.Time) {
 	upcoming[until] = append(upcoming[until], r.GetText())
 }
 
-func days() []*reminders.Daily {
+func days() []*tasks.Daily {
 	fileName := os.Args[1]
 	b, err := os.ReadFile(fileName)
 	if err != nil {
@@ -54,12 +54,12 @@ func days() []*reminders.Daily {
 
 	lines := strings.Split(string(b), "\n")
 
-	ds := []*reminders.Daily{}
+	ds := []*tasks.Daily{}
 	for _, line := range lines {
 		if line == "" {
 			continue
 		}
-		d, err := reminders.NewDaily(line)
+		d, err := tasks.NewDaily(line)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -69,7 +69,7 @@ func days() []*reminders.Daily {
 	return ds
 }
 
-func months() []*reminders.Monthly {
+func months() []*tasks.Monthly {
 	fileName := os.Args[1]
 	b, err := os.ReadFile(fileName)
 	if err != nil {
@@ -78,12 +78,12 @@ func months() []*reminders.Monthly {
 
 	lines := strings.Split(string(b), "\n")
 
-	ms := []*reminders.Monthly{}
+	ms := []*tasks.Monthly{}
 	for _, line := range lines {
 		if line == "" {
 			continue
 		}
-		m, err := reminders.NewMonthly(line)
+		m, err := tasks.NewMonthly(line)
 		if err != nil {
 			log.Fatal(err)
 		}

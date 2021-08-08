@@ -1,4 +1,4 @@
-package reminders
+package tasks
 
 import (
 	"encoding/json"

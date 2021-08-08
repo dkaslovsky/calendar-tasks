@@ -1,4 +1,4 @@
-package reminders
+package tasks
 
 import (
 	"fmt"
@@ -7,18 +7,18 @@ import (
 
 const delim = ":"
 
-type rawReminder struct {
+type rawLine struct {
 	date string
 	text string
 }
 
-func loadLine(line string) (*rawReminder, error) {
+func loadLine(line string) (*rawLine, error) {
 	parts := strings.Split(line, delim)
 	if len(parts) != 2 {
-		return &rawReminder{}, fmt.Errorf("invalid line [%s]", line)
+		return &rawLine{}, fmt.Errorf("invalid line [%s]", line)
 	}
 
-	r := &rawReminder{
+	r := &rawLine{
 		date: parts[0],
 		text: cleanText(parts[1]),
 	}

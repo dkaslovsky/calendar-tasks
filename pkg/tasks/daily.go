@@ -1,11 +1,11 @@
-package reminders
+package tasks
 
 import (
 	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/dkaslovsky/reminders/pkg/weekday"
+	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
 )
 
 type Daily struct {
@@ -19,7 +19,7 @@ func NewDaily(line string) (*Daily, error) {
 		return &Daily{}, nil
 	}
 
-	day, err := weekday.Parse(raw.date)
+	day, err := calendar.ParseWeekday(raw.date)
 	if err != nil {
 		return &Daily{}, fmt.Errorf("could not parse date: %v", err)
 	}
@@ -32,7 +32,7 @@ func NewDaily(line string) (*Daily, error) {
 }
 
 func (d *Daily) DaysFrom(t time.Time) int {
-	return weekday.DaysBetween(t.Weekday(), d.Day)
+	return calendar.DaysBetweenWeekdays(t.Weekday(), d.Day)
 }
 
 func (d *Daily) String() string {
