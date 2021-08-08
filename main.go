@@ -12,37 +12,34 @@ import (
 
 func main() {
 	now := time.Now()
-	//rs := days()
-	rs := months()
+	rs := days()
+	//rs := months()
 
-	for _, r := range rs {
-		fmt.Println(r)
-	}
-
-	upcoming := make(map[int][]string)
+	upcoming := make(map[int][]taskItem)
 	for _, r := range rs {
 		appendUpcoming(upcoming, r, now)
 	}
 
-	for until, text := range upcoming {
+	for until, rr := range upcoming {
 		fmt.Println(until)
-		for _, t := range text {
-			fmt.Printf("\t%s\n", t)
+		for _, r := range rr {
+			fmt.Println(r)
 		}
+		fmt.Print("--------\n")
 	}
 }
 
-type reminder interface {
+type taskItem interface {
 	DaysFrom(time.Time) int
-	GetText() string
+	String() string
 }
 
-func appendUpcoming(upcoming map[int][]string, r reminder, now time.Time) {
+func appendUpcoming(upcoming map[int][]taskItem, r taskItem, now time.Time) {
 	until := r.DaysFrom(now)
 	if _, ok := upcoming[until]; !ok {
-		upcoming[until] = []string{}
+		upcoming[until] = []taskItem{}
 	}
-	upcoming[until] = append(upcoming[until], r.GetText())
+	upcoming[until] = append(upcoming[until], r)
 }
 
 func days() []*tasks.Daily {

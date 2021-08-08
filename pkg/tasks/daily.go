@@ -42,7 +42,3 @@ func (d *Daily) String() string {
 	}, "", "\t")
 	return string(s)
 }
-
-func (d *Daily) GetText() string {
-	return d.Text
-}
