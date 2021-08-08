@@ -1,2 +1,2 @@
-# reminders
-Calendar tasks in a CLI
+# Calendar-Tasks
+CLI for managing calendar tasks
