@@ -8,6 +8,7 @@ import (
 
 var weekdays = map[string]time.Weekday{}
 
+// similar to github.com/icza/gox/timex
 func init() {
 	for d := time.Sunday; d <= time.Saturday; d++ {
 		name := strings.ToLower(d.String())
