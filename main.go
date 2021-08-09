@@ -23,6 +23,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	repeatedMonthly, err := tasks.LoadRepeatedMonthly(os.Args[3])
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	for _, d := range daily {
 		f.Add(d)
@@ -30,8 +34,11 @@ func main() {
 	for _, m := range monthly {
 		f.Add(m)
 	}
+	for _, m := range repeatedMonthly {
+		f.Add(m)
+	}
 
-	n, _ := strconv.Atoi(os.Args[3])
+	n, _ := strconv.Atoi(os.Args[4])
 
 	tasksByDay := f.GetTasksGrouped(n)
 	for day := 0; day <= n; day++ {

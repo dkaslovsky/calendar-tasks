@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var weekdays = map[string]time.Weekday{}
+var weekdays = make(map[string]time.Weekday)
 
 // similar to github.com/icza/gox/timex
 func init() {
@@ -22,7 +22,7 @@ func ParseWeekday(s string) (time.Weekday, error) {
 	var day time.Weekday
 	day, ok := weekdays[strings.ToLower(s)]
 	if !ok {
-		return day, fmt.Errorf("invalid weekday [%s]", day)
+		return day, fmt.Errorf("invalid weekday [%s]", s)
 	}
 	return day, nil
 }
