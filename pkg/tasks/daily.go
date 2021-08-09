@@ -3,6 +3,8 @@ package tasks
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
@@ -41,4 +43,26 @@ func (d *Daily) String() string {
 		"Text": d.Text,
 	}, "", "\t")
 	return string(s)
+}
+
+func LoadDaily(fileName string) ([]*Daily, error) {
+	ds := []*Daily{}
+
+	b, err := os.ReadFile(fileName)
+	if err != nil {
+		return ds, fmt.Errorf("failed to read file: %v", err)
+	}
+
+	lines := strings.Split(string(b), "\n")
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		d, err := NewDaily(line)
+		if err != nil {
+			return ds, err
+		}
+		ds = append(ds, d)
+	}
+	return ds, nil
 }

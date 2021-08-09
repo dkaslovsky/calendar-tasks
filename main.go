@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
+	"strconv"
 	"time"
 
 	"github.com/dkaslovsky/calendar-tasks/pkg/filter"
@@ -13,66 +13,35 @@ import (
 
 func main() {
 	now := time.Now()
-	rs := days()
-	//rs := months()
-
 	f := filter.New(now)
-	for _, r := range rs {
-		f.Add(r)
+
+	daily, err := tasks.LoadDaily(os.Args[1])
+	if err != nil {
+		log.Fatal(err)
+	}
+	monthly, err := tasks.LoadMonthly(os.Args[2])
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	for day, tasks := range f.GetTasksGrouped(10) {
+	for _, d := range daily {
+		f.Add(d)
+	}
+	for _, m := range monthly {
+		f.Add(m)
+	}
+
+	n, _ := strconv.Atoi(os.Args[3])
+
+	tasksByDay := f.GetTasksGrouped(n)
+	for day := 0; day <= n; day++ {
+		tasks, ok := tasksByDay[day]
+		if !ok {
+			continue
+		}
 		fmt.Printf("Day = %d\n", day)
 		for _, task := range tasks {
 			fmt.Println(task)
 		}
 	}
-}
-
-func days() []*tasks.Daily {
-	fileName := os.Args[1]
-	b, err := os.ReadFile(fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	lines := strings.Split(string(b), "\n")
-
-	ds := []*tasks.Daily{}
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
-		d, err := tasks.NewDaily(line)
-		if err != nil {
-			log.Fatal(err)
-		}
-		ds = append(ds, d)
-	}
-
-	return ds
-}
-
-func months() []*tasks.Monthly {
-	fileName := os.Args[1]
-	b, err := os.ReadFile(fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	lines := strings.Split(string(b), "\n")
-
-	ms := []*tasks.Monthly{}
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
-		m, err := tasks.NewMonthly(line)
-		if err != nil {
-			log.Fatal(err)
-		}
-		ms = append(ms, m)
-	}
-
-	return ms
 }

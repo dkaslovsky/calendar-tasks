@@ -3,7 +3,9 @@ package tasks
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
@@ -43,4 +45,26 @@ func (m *Monthly) DaysFrom(t time.Time) int {
 func (m *Monthly) String() string {
 	s, _ := json.MarshalIndent(m, "", "\t")
 	return string(s)
+}
+
+func LoadMonthly(fileName string) ([]*Monthly, error) {
+	ms := []*Monthly{}
+
+	b, err := os.ReadFile(fileName)
+	if err != nil {
+		return ms, fmt.Errorf("failed to read file: %v", err)
+	}
+
+	lines := strings.Split(string(b), "\n")
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		m, err := NewMonthly(line)
+		if err != nil {
+			return ms, err
+		}
+		ms = append(ms, m)
+	}
+	return ms, nil
 }
