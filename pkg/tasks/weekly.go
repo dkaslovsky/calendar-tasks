@@ -3,8 +3,6 @@ package tasks
 import (
 	"encoding/json"
 	"fmt"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
@@ -15,54 +13,31 @@ type Weekly struct {
 	Text string
 }
 
-func NewWeekly(line string) (*Weekly, error) {
-	raw, err := loadLine(line)
-	if err != nil {
-		return &Weekly{}, nil
-	}
-
+func NewWeekly(raw *rawLine) (Task, error) {
 	day, err := calendar.ParseWeekday(raw.date)
 	if err != nil {
-		return &Weekly{}, fmt.Errorf("could not parse date: %v", err)
+		return nil, fmt.Errorf("could not parse date: %v", err)
 	}
 
-	d := &Weekly{
+	w := &Weekly{
 		Day:  day,
 		Text: raw.text,
 	}
-	return d, nil
+	return w, nil
 }
 
-func (d *Weekly) DaysFrom(t time.Time) int {
-	return calendar.DaysBetweenWeekdays(t.Weekday(), d.Day)
+func (w *Weekly) DaysFrom(t time.Time) int {
+	return calendar.DaysBetweenWeekdays(t.Weekday(), w.Day)
 }
 
-func (d *Weekly) String() string {
+func (w *Weekly) String() string {
 	s, _ := json.MarshalIndent(map[string]string{
-		"Day":  d.Day.String(),
-		"Text": d.Text,
+		"Day":  w.Day.String(),
+		"Text": w.Text,
 	}, "", "\t")
 	return string(s)
 }
 
-func LoadWeekly(fileName string) ([]*Weekly, error) {
-	ds := []*Weekly{}
-
-	b, err := os.ReadFile(fileName)
-	if err != nil {
-		return ds, fmt.Errorf("failed to read file: %v", err)
-	}
-
-	lines := strings.Split(string(b), "\n")
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
-		d, err := NewWeekly(line)
-		if err != nil {
-			return ds, err
-		}
-		ds = append(ds, d)
-	}
-	return ds, nil
+func LoadWeekly(fileName string) ([]Task, error) {
+	return Load(fileName, NewWeekly)
 }

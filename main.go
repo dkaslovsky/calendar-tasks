@@ -7,13 +7,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dkaslovsky/calendar-tasks/pkg/filter"
 	"github.com/dkaslovsky/calendar-tasks/pkg/tasks"
 )
 
 func main() {
 	now := time.Now()
-	f := filter.New(now)
+	f := tasks.NewFilter(now)
 
 	weekly, err := tasks.LoadWeekly(os.Args[1])
 	if err != nil {

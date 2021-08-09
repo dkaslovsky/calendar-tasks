@@ -3,7 +3,6 @@ package tasks
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -23,12 +22,7 @@ type Recurring struct {
 	Text  string
 }
 
-func NewRecurring(line string) (*Recurring, error) {
-	raw, err := loadLine(line)
-	if err != nil {
-		return &Recurring{}, nil
-	}
-
+func NewRecurring(raw *rawLine) (Task, error) {
 	dateParts := strings.SplitN(raw.date, " ", 2)
 	if len(dateParts) != 2 {
 		return &Recurring{}, fmt.Errorf("invalid recurring date [%s]", raw.date)
@@ -86,24 +80,6 @@ func (m *Recurring) String() string {
 	return string(s)
 }
 
-func LoadRecurring(fileName string) ([]*Recurring, error) {
-	ms := []*Recurring{}
-
-	b, err := os.ReadFile(fileName)
-	if err != nil {
-		return ms, fmt.Errorf("failed to read file: %v", err)
-	}
-
-	lines := strings.Split(string(b), "\n")
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
-		m, err := NewRecurring(line)
-		if err != nil {
-			return ms, err
-		}
-		ms = append(ms, m)
-	}
-	return ms, nil
+func LoadRecurring(fileName string) ([]Task, error) {
+	return Load(fileName, NewRecurring)
 }

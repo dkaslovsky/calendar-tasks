@@ -1,34 +1,30 @@
-package filter
+package tasks
 
 import "time"
-
-type task interface {
-	DaysFrom(time.Time) int
-}
 
 // TODO: make thread safe?
 type Filter struct {
 	now   time.Time
-	tasks map[int][]task
+	tasks map[int][]Task
 }
 
-func New(now time.Time) *Filter {
+func NewFilter(now time.Time) *Filter {
 	return &Filter{
 		now:   now,
-		tasks: make(map[int][]task),
+		tasks: make(map[int][]Task),
 	}
 }
 
-func (f *Filter) Add(t task) {
+func (f *Filter) Add(t Task) {
 	days := t.DaysFrom(f.now)
 	if _, exists := f.tasks[days]; !exists {
-		f.tasks[days] = []task{}
+		f.tasks[days] = []Task{}
 	}
 	f.tasks[days] = append(f.tasks[days], t)
 }
 
-func (f *Filter) GetTasksFlat(nDays int) []task {
-	tasks := []task{}
+func (f *Filter) GetTasksFlat(nDays int) []Task {
+	tasks := []Task{}
 	for day := 0; day < nDays; day++ {
 		t, ok := f.tasks[day]
 		if !ok {
@@ -39,8 +35,8 @@ func (f *Filter) GetTasksFlat(nDays int) []task {
 	return tasks
 }
 
-func (f *Filter) GetTasksGrouped(nDays int) map[int][]task {
-	ff := New(f.now)
+func (f *Filter) GetTasksGrouped(nDays int) map[int][]Task {
+	ff := NewFilter(f.now)
 	for day := 0; day < nDays; day++ {
 		tasks, ok := f.tasks[day]
 		if !ok {

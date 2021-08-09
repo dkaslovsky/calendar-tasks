@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -10,6 +11,32 @@ const delim = ":"
 type rawLine struct {
 	date string
 	text string
+}
+
+func Load(fileName string, newTask func(*rawLine) (Task, error)) ([]Task, error) {
+	tasks := []Task{}
+
+	b, err := os.ReadFile(fileName)
+	if err != nil {
+		return tasks, fmt.Errorf("failed to load file: %v", err)
+	}
+
+	lines := strings.Split(string(b), "\n")
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		rl, err := loadLine(line)
+		if err != nil {
+			return tasks, fmt.Errorf("failed to load file: %v", err)
+		}
+		t, err := newTask(rl)
+		if err != nil {
+			return tasks, fmt.Errorf("failed to parse line: %v", err)
+		}
+		tasks = append(tasks, t)
+	}
+	return tasks, nil
 }
 
 func loadLine(line string) (*rawLine, error) {

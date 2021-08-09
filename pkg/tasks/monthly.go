@@ -3,9 +3,7 @@ package tasks
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
@@ -16,12 +14,7 @@ type Monthly struct {
 	Text string
 }
 
-func NewMonthly(line string) (*Monthly, error) {
-	raw, err := loadLine(line)
-	if err != nil {
-		return &Monthly{}, nil
-	}
-
+func NewMonthly(raw *rawLine) (Task, error) {
 	day, err := strconv.ParseInt(raw.date, 10, 0)
 	if err != nil {
 		return &Monthly{}, fmt.Errorf("could not parse date: %v", err)
@@ -47,24 +40,6 @@ func (m *Monthly) String() string {
 	return string(s)
 }
 
-func LoadMonthly(fileName string) ([]*Monthly, error) {
-	ms := []*Monthly{}
-
-	b, err := os.ReadFile(fileName)
-	if err != nil {
-		return ms, fmt.Errorf("failed to read file: %v", err)
-	}
-
-	lines := strings.Split(string(b), "\n")
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
-		m, err := NewMonthly(line)
-		if err != nil {
-			return ms, err
-		}
-		ms = append(ms, m)
-	}
-	return ms, nil
+func LoadMonthly(fileName string) ([]Task, error) {
+	return Load(fileName, NewMonthly)
 }
