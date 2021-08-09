@@ -62,7 +62,22 @@ func NewRepeatedMonthly(line string) (*RepeatedMonthly, error) {
 }
 
 func (m *RepeatedMonthly) DaysFrom(t time.Time) int {
-	return 0
+	nowYear := t.Year()
+	nowLoc := t.Location()
+
+	curDiff := 10e8
+	for _, date := range m.Dates {
+		curT := time.Date(nowYear, date.Month, date.Day, 0, 0, 0, 0, nowLoc)
+		diff := curT.Sub(t).Hours() / 24
+		if diff < 0 {
+			diff += 365
+		}
+		if diff < curDiff {
+			curDiff = diff
+		}
+	}
+	// cast to integer is valid because day is finest time granularity available
+	return int(curDiff)
 }
 
 func (m *RepeatedMonthly) String() string {

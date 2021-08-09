@@ -19,20 +19,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	for _, d := range daily {
+		f.Add(d)
+	}
+
 	monthly, err := tasks.LoadMonthly(os.Args[2])
 	if err != nil {
 		log.Fatal(err)
 	}
+	for _, m := range monthly {
+		f.Add(m)
+	}
+
 	repeatedMonthly, err := tasks.LoadRepeatedMonthly(os.Args[3])
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	for _, d := range daily {
-		f.Add(d)
-	}
-	for _, m := range monthly {
-		f.Add(m)
 	}
 	for _, m := range repeatedMonthly {
 		f.Add(m)
