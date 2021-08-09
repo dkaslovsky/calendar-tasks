@@ -15,7 +15,7 @@ func main() {
 	now := time.Now()
 	f := filter.New(now)
 
-	daily, err := tasks.LoadDaily(os.Args[1])
+	daily, err := tasks.LoadWeekly(os.Args[1])
 	if err != nil {
 		log.Fatal(err)
 	}

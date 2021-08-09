@@ -10,34 +10,34 @@ import (
 	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
 )
 
-type Daily struct {
+type Weekly struct {
 	Day  time.Weekday
 	Text string
 }
 
-func NewDaily(line string) (*Daily, error) {
+func NewWeekly(line string) (*Weekly, error) {
 	raw, err := loadLine(line)
 	if err != nil {
-		return &Daily{}, nil
+		return &Weekly{}, nil
 	}
 
 	day, err := calendar.ParseWeekday(raw.date)
 	if err != nil {
-		return &Daily{}, fmt.Errorf("could not parse date: %v", err)
+		return &Weekly{}, fmt.Errorf("could not parse date: %v", err)
 	}
 
-	d := &Daily{
+	d := &Weekly{
 		Day:  day,
 		Text: raw.text,
 	}
 	return d, nil
 }
 
-func (d *Daily) DaysFrom(t time.Time) int {
+func (d *Weekly) DaysFrom(t time.Time) int {
 	return calendar.DaysBetweenWeekdays(t.Weekday(), d.Day)
 }
 
-func (d *Daily) String() string {
+func (d *Weekly) String() string {
 	s, _ := json.MarshalIndent(map[string]string{
 		"Day":  d.Day.String(),
 		"Text": d.Text,
@@ -45,8 +45,8 @@ func (d *Daily) String() string {
 	return string(s)
 }
 
-func LoadDaily(fileName string) ([]*Daily, error) {
-	ds := []*Daily{}
+func LoadWeekly(fileName string) ([]*Weekly, error) {
+	ds := []*Weekly{}
 
 	b, err := os.ReadFile(fileName)
 	if err != nil {
@@ -58,7 +58,7 @@ func LoadDaily(fileName string) ([]*Daily, error) {
 		if line == "" {
 			continue
 		}
-		d, err := NewDaily(line)
+		d, err := NewWeekly(line)
 		if err != nil {
 			return ds, err
 		}
