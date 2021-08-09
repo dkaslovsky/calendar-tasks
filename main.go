@@ -31,15 +31,15 @@ func main() {
 		f.Add(m)
 	}
 
-	repeatedMonthly, err := tasks.LoadRepeatedMonthly(os.Args[3])
+	recurringMonthly, err := tasks.LoadRecurring(os.Args[3])
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, m := range repeatedMonthly {
+	for _, m := range recurringMonthly {
 		f.Add(m)
 	}
 
-	daily, err := tasks.LoadRepeatedMonthly(os.Args[4])
+	daily, err := tasks.LoadRecurring(os.Args[4])
 	if err != nil {
 		log.Fatal(err)
 	}

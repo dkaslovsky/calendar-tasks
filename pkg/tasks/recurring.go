@@ -23,7 +23,7 @@ type Recurring struct {
 	Text  string
 }
 
-func NewRepeatedMonthly(line string) (*Recurring, error) {
+func NewRecurring(line string) (*Recurring, error) {
 	raw, err := loadLine(line)
 	if err != nil {
 		return &Recurring{}, nil
@@ -86,7 +86,7 @@ func (m *Recurring) String() string {
 	return string(s)
 }
 
-func LoadRepeatedMonthly(fileName string) ([]*Recurring, error) {
+func LoadRecurring(fileName string) ([]*Recurring, error) {
 	ms := []*Recurring{}
 
 	b, err := os.ReadFile(fileName)
@@ -99,7 +99,7 @@ func LoadRepeatedMonthly(fileName string) ([]*Recurring, error) {
 		if line == "" {
 			continue
 		}
-		m, err := NewRepeatedMonthly(line)
+		m, err := NewRecurring(line)
 		if err != nil {
 			return ms, err
 		}
