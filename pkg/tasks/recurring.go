@@ -18,35 +18,35 @@ type date struct {
 	Day   int
 }
 
-type RepeatedMonthly struct {
+type Recurring struct {
 	Dates []*date
 	Text  string
 }
 
-func NewRepeatedMonthly(line string) (*RepeatedMonthly, error) {
+func NewRepeatedMonthly(line string) (*Recurring, error) {
 	raw, err := loadLine(line)
 	if err != nil {
-		return &RepeatedMonthly{}, nil
+		return &Recurring{}, nil
 	}
 
 	dateParts := strings.SplitN(raw.date, " ", 2)
 	if len(dateParts) != 2 {
-		return &RepeatedMonthly{}, fmt.Errorf("invalid repeated monthly date [%s]", raw.date)
+		return &Recurring{}, fmt.Errorf("invalid recurring date [%s]", raw.date)
 	}
 	day, err := strconv.ParseInt(dateParts[1], 10, 0)
 	if err != nil {
-		return &RepeatedMonthly{}, fmt.Errorf("could not parse date: %v", err)
+		return &Recurring{}, fmt.Errorf("could not parse date: %v", err)
 	}
 	months := strings.Split(dateParts[0], monthDelim)
 	if len(months) == 0 || len(months) > 12 {
-		return &RepeatedMonthly{}, fmt.Errorf("invalid repeated monthly date [%s]", raw.date)
+		return &Recurring{}, fmt.Errorf("invalid recurring date [%s]", raw.date)
 	}
 
 	dates := []*date{}
 	for _, m := range months {
 		month, err := calendar.ParseMonth(m)
 		if err != nil {
-			return &RepeatedMonthly{}, fmt.Errorf("invalid repeated monthly date [%s]", raw.date)
+			return &Recurring{}, fmt.Errorf("invalid recurring date [%s]", raw.date)
 		}
 		dates = append(dates, &date{
 			Month: month,
@@ -54,14 +54,14 @@ func NewRepeatedMonthly(line string) (*RepeatedMonthly, error) {
 		})
 	}
 
-	m := &RepeatedMonthly{
+	m := &Recurring{
 		Dates: dates,
 		Text:  raw.text,
 	}
 	return m, nil
 }
 
-func (m *RepeatedMonthly) DaysFrom(t time.Time) int {
+func (m *Recurring) DaysFrom(t time.Time) int {
 	nowYear := t.Year()
 	nowLoc := t.Location()
 
@@ -76,17 +76,18 @@ func (m *RepeatedMonthly) DaysFrom(t time.Time) int {
 			curDiff = diff
 		}
 	}
-	// cast to integer is valid because day is finest time granularity available
+
+	// cast to integer does not lose precision because day is finest time granularity available
 	return int(curDiff)
 }
 
-func (m *RepeatedMonthly) String() string {
+func (m *Recurring) String() string {
 	s, _ := json.MarshalIndent(m, "", "\t")
 	return string(s)
 }
 
-func LoadRepeatedMonthly(fileName string) ([]*RepeatedMonthly, error) {
-	ms := []*RepeatedMonthly{}
+func LoadRepeatedMonthly(fileName string) ([]*Recurring, error) {
+	ms := []*Recurring{}
 
 	b, err := os.ReadFile(fileName)
 	if err != nil {

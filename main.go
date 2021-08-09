@@ -15,11 +15,11 @@ func main() {
 	now := time.Now()
 	f := filter.New(now)
 
-	daily, err := tasks.LoadWeekly(os.Args[1])
+	weekly, err := tasks.LoadWeekly(os.Args[1])
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, d := range daily {
+	for _, d := range weekly {
 		f.Add(d)
 	}
 
@@ -39,7 +39,15 @@ func main() {
 		f.Add(m)
 	}
 
-	n, _ := strconv.Atoi(os.Args[4])
+	daily, err := tasks.LoadRepeatedMonthly(os.Args[4])
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, m := range daily {
+		f.Add(m)
+	}
+
+	n, _ := strconv.Atoi(os.Args[5])
 
 	tasksByDay := f.GetTasksGrouped(n)
 	for day := 0; day <= n; day++ {
