@@ -40,7 +40,7 @@ func Load(fileName string, newTask func(*rawLine) (Task, error)) ([]Task, error)
 }
 
 func loadLine(line string) (*rawLine, error) {
-	parts := strings.Split(line, delim)
+	parts := strings.SplitN(line, delim, 2)
 	if len(parts) != 2 {
 		return &rawLine{}, fmt.Errorf("invalid line [%s]", line)
 	}

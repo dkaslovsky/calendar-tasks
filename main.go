@@ -18,8 +18,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, d := range weekly {
-		f.Add(d)
+	for _, w := range weekly {
+		f.Add(w)
 	}
 
 	monthly, err := tasks.LoadMonthly(os.Args[2])
