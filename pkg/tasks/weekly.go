@@ -8,36 +8,36 @@ import (
 	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
 )
 
-type Weekly struct {
-	Day  time.Weekday
-	Text string
+type weekly struct {
+	day  time.Weekday
+	text string
 }
 
-func NewWeekly(raw *rawLine) (Task, error) {
+func newWeekly(raw *rawLine) (Task, error) {
 	day, err := calendar.ParseWeekday(raw.date)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse date: %v", err)
 	}
 
-	w := &Weekly{
-		Day:  day,
-		Text: raw.text,
+	w := &weekly{
+		day:  day,
+		text: raw.text,
 	}
 	return w, nil
 }
 
-func (w *Weekly) DaysFrom(t time.Time) int {
-	return calendar.DaysBetweenWeekdays(t.Weekday(), w.Day)
+func (w *weekly) DaysFrom(t time.Time) int {
+	return calendar.DaysBetweenWeekdays(t.Weekday(), w.day)
 }
 
-func (w *Weekly) String() string {
+func (w *weekly) String() string {
 	s, _ := json.MarshalIndent(map[string]string{
-		"Day":  w.Day.String(),
-		"Text": w.Text,
+		"Day":  w.day.String(),
+		"Text": w.text,
 	}, "", "\t")
 	return string(s)
 }
 
 func LoadWeekly(fileName string) ([]Task, error) {
-	return Load(fileName, NewWeekly)
+	return Load(fileName, newWeekly)
 }

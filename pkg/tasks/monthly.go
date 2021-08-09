@@ -9,37 +9,40 @@ import (
 	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
 )
 
-type Monthly struct {
-	Day  int
-	Text string
+type monthly struct {
+	day  int
+	text string
 }
 
-func NewMonthly(raw *rawLine) (Task, error) {
+func newMonthly(raw *rawLine) (Task, error) {
 	day, err := strconv.ParseInt(raw.date, 10, 0)
 	if err != nil {
-		return &Monthly{}, fmt.Errorf("could not parse date: %v", err)
+		return &monthly{}, fmt.Errorf("could not parse date: %v", err)
 	}
 
-	m := &Monthly{
-		Day:  int(day),
-		Text: raw.text,
+	m := &monthly{
+		day:  int(day),
+		text: raw.text,
 	}
 	return m, nil
 }
 
-func (m *Monthly) DaysFrom(t time.Time) int {
-	diff := int(m.Day - t.Day())
+func (m *monthly) DaysFrom(t time.Time) int {
+	diff := int(m.day - t.Day())
 	if diff >= 0 {
 		return diff
 	}
 	return diff + calendar.DaysInMonth(t)
 }
 
-func (m *Monthly) String() string {
-	s, _ := json.MarshalIndent(m, "", "\t")
+func (m *monthly) String() string {
+	s, _ := json.MarshalIndent(map[string]string{
+		"Day":  fmt.Sprint(m.day),
+		"Text": m.text,
+	}, "", "\t")
 	return string(s)
 }
 
 func LoadMonthly(fileName string) ([]Task, error) {
-	return Load(fileName, NewMonthly)
+	return Load(fileName, newMonthly)
 }
