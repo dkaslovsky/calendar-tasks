@@ -30,7 +30,8 @@ func (g *Grouper) Add(t Task) {
 // Filter returns groups of tasks to occur within a specified number of days
 func (g *Grouper) Filter(nDays int) map[int][]Task {
 	gg := NewGrouper(g.now)
-	for day := 0; day < nDays; day++ {
+	// start the loop at today (0) and include nDays
+	for day := 0; day <= nDays; day++ {
 		tasks, ok := g.tasks[day]
 		if !ok {
 			continue
