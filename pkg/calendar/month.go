@@ -38,6 +38,7 @@ func DaysInMonth(t time.Time) int {
 	return monthEndDate.Day()
 }
 
+// IsLeapYear evaluates if a year is a leap year
 func IsLeapYear(year int) bool {
 	t := time.Date(year, time.February, 1, 0, 0, 0, 0, time.UTC)
 	return DaysInMonth(t) == 29
