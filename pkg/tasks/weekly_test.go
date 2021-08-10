@@ -87,7 +87,7 @@ func Test_newWeekly(t *testing.T) {
 			}
 			result, ok := res.(*weekly)
 			if !ok {
-				t.Fatal("type assertion to *weekly failed on result")
+				t.Fatal("type assertion failed on result")
 			}
 			if result.day != test.expectedDay {
 				t.Fatalf("result days %d not equal to expected days %d", result.day, test.expectedDay)

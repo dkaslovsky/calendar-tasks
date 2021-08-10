@@ -6,6 +6,29 @@ import (
 	"time"
 )
 
+func assertEqualDateSlice(t *testing.T, expected, actual []*date) {
+	if len(expected) != len(actual) {
+		t.Fatalf("number of result dates %d not equal to number of expected dates %d", len(actual), len(expected))
+	}
+
+	actualDates := actual
+	expectedDates := expected
+	sort.Slice(actualDates, func(i, j int) bool {
+		return actualDates[i].month > actualDates[j].month
+	})
+	sort.Slice(expectedDates, func(i, j int) bool {
+		return expectedDates[i].month > expectedDates[j].month
+	})
+
+	for i := 0; i < len(expectedDates); i++ {
+		a := actualDates[i]
+		e := expectedDates[i]
+		if a.month != e.month || a.day != e.day {
+			t.Fatalf("unexpected result date %v", a)
+		}
+	}
+}
+
 func TestRecurringDaysFrom(t *testing.T) {
 	tests := map[string]struct {
 		r        *recurring
@@ -293,30 +316,12 @@ func Test_newRecurring(t *testing.T) {
 			}
 			result, ok := res.(*recurring)
 			if !ok {
-				t.Fatal("type assertion to *weekly failed on result")
+				t.Fatal("type assertion failed on result")
 			}
 			if result.text != test.expectedText {
 				t.Fatalf("result text '%s' not equal to expected text '%s'", result.text, test.expectedText)
 			}
-
-			if len(result.dates) != len(test.expectedDates) {
-				t.Fatalf("number of result dates %d not equal to number of expected dates %d", len(result.dates), len(test.expectedDates))
-			}
-
-			resultDates := result.dates
-			expectedDates := test.expectedDates
-			sort.Slice(resultDates, func(i, j int) bool {
-				return resultDates[i].month > resultDates[j].month
-			})
-			sort.Slice(expectedDates, func(i, j int) bool {
-				return expectedDates[i].month > expectedDates[j].month
-			})
-			for i, d := range resultDates {
-				ed := expectedDates[i]
-				if d.month != ed.month || d.day != ed.day {
-					t.Fatalf("unexpected result date %v", d)
-				}
-			}
+			assertEqualDateSlice(t, test.expectedDates, result.dates)
 		})
 	}
 
