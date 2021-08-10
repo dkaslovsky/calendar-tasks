@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"sort"
 	"testing"
 	"time"
 )
@@ -16,7 +17,7 @@ func (tt *testTask) String() string { return "" }
 
 func (tt *testTask) Equal(other *testTask) bool { return tt.id == other.id }
 
-func assertEqualGrouperTasks(t *testing.T, expected, actual map[int][]Task) {
+func assertEqualTestTaskMap(t *testing.T, expected, actual map[int][]Task) {
 	for day, etsks := range expected {
 		atsks, ok := actual[day]
 		if !ok {
@@ -25,21 +26,35 @@ func assertEqualGrouperTasks(t *testing.T, expected, actual map[int][]Task) {
 		if len(atsks) != len(etsks) {
 			t.Fatalf("result number of tasks %d not equal to expected number of tasks %d for key %d", len(atsks), len(etsks), day)
 		}
-		for i, etsk := range etsks {
-			etsk, ok := etsk.(*testTask)
+
+		eTestTasks := []*testTask{}
+		aTestTasks := []*testTask{}
+		for i := 0; i < len(etsks); i++ {
+			etsk, ok := etsks[i].(*testTask)
 			if !ok {
-				t.Fatalf("bad test set up, type assertion on expected task failed")
+				t.Fatalf("type assertion on expected task failed")
 			}
+			eTestTasks = append(eTestTasks, etsk)
+
 			atsk, ok := atsks[i].(*testTask)
 			if !ok {
 				t.Fatalf("type assertion on grouped task failed")
 			}
-			if !atsk.Equal(etsk) {
-				t.Fatalf("result task id '%s' not equal to expected task id '%s'", atsk.id, etsk.id)
+			aTestTasks = append(aTestTasks, atsk)
+		}
+		sort.Slice(eTestTasks, func(i, j int) bool {
+			return eTestTasks[i].id > eTestTasks[j].id
+		})
+		sort.Slice(aTestTasks, func(i, j int) bool {
+			return aTestTasks[i].id > aTestTasks[j].id
+		})
+
+		for i := 0; i < len(etsks); i++ {
+			if !eTestTasks[i].Equal(aTestTasks[i]) {
+				t.Fatalf("result task with id '%s' not equal to expected task with id '%s'", aTestTasks[i].id, aTestTasks[i].id)
 			}
 		}
 	}
-
 }
 
 func TestAdd(t *testing.T) {
@@ -98,6 +113,10 @@ func TestAdd(t *testing.T) {
 					daysFrom: 4,
 				},
 				{
+					id:       "c",
+					daysFrom: 5,
+				},
+				{
 					id:       "b",
 					daysFrom: 5,
 				},
@@ -106,6 +125,10 @@ func TestAdd(t *testing.T) {
 				5: {
 					&testTask{
 						id:       "b",
+						daysFrom: 5,
+					},
+					&testTask{
+						id:       "c",
 						daysFrom: 5,
 					},
 				},
@@ -126,31 +149,7 @@ func TestAdd(t *testing.T) {
 			for _, tsk := range test.tasks {
 				g.Add(tsk)
 			}
-
-			assertEqualGrouperTasks(t, test.expectedTasks, g.tasks)
-
-			// for day, etsks := range test.expectedTasks {
-			// 	gtsks, ok := g.tasks[day]
-			// 	if !ok {
-			// 		t.Fatalf("result missing task key %d", day)
-			// 	}
-			// 	if len(gtsks) != len(etsks) {
-			// 		t.Fatalf("result number of tasks %d not equal to expected number of tasks %d for key %d", len(gtsks), len(etsks), day)
-			// 	}
-			// 	for i, etsk := range etsks {
-			// 		etsk, ok := etsk.(*testTask)
-			// 		if !ok {
-			// 			t.Fatalf("bad test set up, type assertion on expected task failed")
-			// 		}
-			// 		gtsk, ok := gtsks[i].(*testTask)
-			// 		if !ok {
-			// 			t.Fatalf("type assertion on grouped task failed")
-			// 		}
-			// 		if gtsk.id != etsk.id {
-			// 			t.Fatalf("result task id '%s' not equal to expected task id '%s'", gtsk.id, etsk.id)
-			// 		}
-			// 	}
-			// }
+			assertEqualTestTaskMap(t, test.expectedTasks, g.tasks)
 		})
 	}
 }
