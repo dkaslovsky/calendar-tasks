@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func TesnowonthlyDaysFrom(t *testing.T) {
+func TestMonthlyDaysFrom(t *testing.T) {
 	tests := map[string]struct {
 		m        *monthly
 		now      time.Time
@@ -29,7 +29,7 @@ func TesnowonthlyDaysFrom(t *testing.T) {
 		"previous day for month with 31 days": {
 			m:        &monthly{day: 5},
 			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
-			expected: 31,
+			expected: 30,
 		},
 		"five days before for month with 31 days": {
 			m:        &monthly{day: 1},
@@ -39,17 +39,17 @@ func TesnowonthlyDaysFrom(t *testing.T) {
 		"previous day for month with 30 days": {
 			m:        &monthly{day: 5},
 			now:      time.Date(2021, time.June, 6, 0, 0, 0, 0, time.UTC),
-			expected: 30,
+			expected: 29,
 		},
 		"previous day for February": {
 			m:        &monthly{day: 5},
 			now:      time.Date(2021, time.February, 6, 0, 0, 0, 0, time.UTC),
-			expected: 28,
+			expected: 27,
 		},
 		"previous day for February leap year": {
 			m:        &monthly{day: 5},
 			now:      time.Date(2024, time.February, 6, 0, 0, 0, 0, time.UTC),
-			expected: 29,
+			expected: 28,
 		},
 	}
 
