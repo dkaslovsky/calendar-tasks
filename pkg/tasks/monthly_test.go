@@ -96,15 +96,11 @@ func Test_newMonthly(t *testing.T) {
 		test := test
 		t.Run(name, func(t *testing.T) {
 			res, err := newMonthly(test.raw)
+			assertShouldError(t, test.shouldErr, err)
 			if test.shouldErr {
-				if err == nil {
-					t.Fatal("expected error but result err is nil")
-				}
 				return
 			}
-			if !test.shouldErr && err != nil {
-				t.Fatalf("expected nil error but result err is %v", err)
-			}
+
 			result, ok := res.(*monthly)
 			if !ok {
 				t.Fatal("type assertion failed on result")

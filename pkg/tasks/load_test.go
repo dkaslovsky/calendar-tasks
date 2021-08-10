@@ -54,14 +54,9 @@ func Test_loadLine(t *testing.T) {
 		test := test
 		t.Run(name, func(t *testing.T) {
 			result, err := loadLine(test.line)
+			assertShouldError(t, test.shouldErr, err)
 			if test.shouldErr {
-				if err == nil {
-					t.Fatal("expected error but result err is nil")
-				}
 				return
-			}
-			if !test.shouldErr && err != nil {
-				t.Fatalf("expected nil error but result err is %v", err)
 			}
 			if result.date != test.expected.date || result.text != test.expected.text {
 				t.Fatalf("result %v does not equal expected %v", result, test.expected)
@@ -131,16 +126,10 @@ func Test_scan(t *testing.T) {
 		test := test
 		t.Run(name, func(t *testing.T) {
 			result, err := scan(test.r, test.newTask)
+			assertShouldError(t, test.shouldErr, err)
 			if test.shouldErr {
-				if err == nil {
-					t.Fatal("expected error but result err is nil")
-				}
 				return
 			}
-			if !test.shouldErr && err != nil {
-				t.Fatalf("expected nil error but result err is %v", err)
-			}
-
 			assertEqualTestTaskSlice(t, test.expected, result)
 		})
 	}
