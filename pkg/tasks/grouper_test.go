@@ -14,6 +14,34 @@ func (tt *testTask) DaysFrom(t time.Time) int { return tt.daysFrom }
 
 func (tt *testTask) String() string { return "" }
 
+func (tt *testTask) Equal(other *testTask) bool { return tt.id == other.id }
+
+func assertEqualGrouperTasks(t *testing.T, expected, actual map[int][]Task) {
+	for day, etsks := range expected {
+		atsks, ok := actual[day]
+		if !ok {
+			t.Fatalf("result missing task key %d", day)
+		}
+		if len(atsks) != len(etsks) {
+			t.Fatalf("result number of tasks %d not equal to expected number of tasks %d for key %d", len(atsks), len(etsks), day)
+		}
+		for i, etsk := range etsks {
+			etsk, ok := etsk.(*testTask)
+			if !ok {
+				t.Fatalf("bad test set up, type assertion on expected task failed")
+			}
+			atsk, ok := atsks[i].(*testTask)
+			if !ok {
+				t.Fatalf("type assertion on grouped task failed")
+			}
+			if !atsk.Equal(etsk) {
+				t.Fatalf("result task id '%s' not equal to expected task id '%s'", atsk.id, etsk.id)
+			}
+		}
+	}
+
+}
+
 func TestAdd(t *testing.T) {
 	tests := map[string]struct {
 		tasks         []*testTask
@@ -99,28 +127,30 @@ func TestAdd(t *testing.T) {
 				g.Add(tsk)
 			}
 
-			for day, etsks := range test.expectedTasks {
-				gtsks, ok := g.tasks[day]
-				if !ok {
-					t.Fatalf("result missing task key %d", day)
-				}
-				if len(gtsks) != len(etsks) {
-					t.Fatalf("result number of tasks %d not equal to expected number of tasks %d for key %d", len(gtsks), len(etsks), day)
-				}
-				for i, etsk := range etsks {
-					etsk, ok := etsk.(*testTask)
-					if !ok {
-						t.Fatalf("bad test set up, type assertion on expected task failed")
-					}
-					gtsk, ok := gtsks[i].(*testTask)
-					if !ok {
-						t.Fatalf("type assertion on grouped task failed")
-					}
-					if gtsk.id != etsk.id {
-						t.Fatalf("result task id '%s' not equal to expected task id '%s'", gtsk.id, etsk.id)
-					}
-				}
-			}
+			assertEqualGrouperTasks(t, test.expectedTasks, g.tasks)
+
+			// for day, etsks := range test.expectedTasks {
+			// 	gtsks, ok := g.tasks[day]
+			// 	if !ok {
+			// 		t.Fatalf("result missing task key %d", day)
+			// 	}
+			// 	if len(gtsks) != len(etsks) {
+			// 		t.Fatalf("result number of tasks %d not equal to expected number of tasks %d for key %d", len(gtsks), len(etsks), day)
+			// 	}
+			// 	for i, etsk := range etsks {
+			// 		etsk, ok := etsk.(*testTask)
+			// 		if !ok {
+			// 			t.Fatalf("bad test set up, type assertion on expected task failed")
+			// 		}
+			// 		gtsk, ok := gtsks[i].(*testTask)
+			// 		if !ok {
+			// 			t.Fatalf("type assertion on grouped task failed")
+			// 		}
+			// 		if gtsk.id != etsk.id {
+			// 			t.Fatalf("result task id '%s' not equal to expected task id '%s'", gtsk.id, etsk.id)
+			// 		}
+			// 	}
+			// }
 		})
 	}
 }
