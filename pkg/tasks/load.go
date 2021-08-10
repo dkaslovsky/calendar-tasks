@@ -13,7 +13,7 @@ type rawLine struct {
 	text string
 }
 
-func Load(fileName string, newTask func(*rawLine) (Task, error)) ([]Task, error) {
+func load(fileName string, newTask func(*rawLine) (Task, error)) ([]Task, error) {
 	tasks := []Task{}
 
 	b, err := os.ReadFile(fileName)

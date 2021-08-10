@@ -8,6 +8,11 @@ import (
 	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
 )
 
+// LoadWeekly loads weekly tasks from a file and returns a slice of objects satisfying the Task interface
+func LoadWeekly(fileName string) ([]Task, error) {
+	return load(fileName, newWeekly)
+}
+
 type weekly struct {
 	day  time.Weekday
 	text string
@@ -36,8 +41,4 @@ func (w *weekly) String() string {
 		"Text": w.text,
 	}, "", "\t")
 	return string(s)
-}
-
-func LoadWeekly(fileName string) ([]Task, error) {
-	return Load(fileName, newWeekly)
 }

@@ -10,6 +10,11 @@ import (
 	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
 )
 
+// LoadRecurring loads monthly tasks from a file and returns a slice of objects satisfying the Task interface
+func LoadRecurring(fileName string) ([]Task, error) {
+	return load(fileName, newRecurring)
+}
+
 const monthDelim = "/"
 
 type date struct {
@@ -85,8 +90,4 @@ func (r *recurring) String() string {
 		"Text":  r.text,
 	}, "", "\t")
 	return string(s)
-}
-
-func LoadRecurring(fileName string) ([]Task, error) {
-	return Load(fileName, newRecurring)
 }

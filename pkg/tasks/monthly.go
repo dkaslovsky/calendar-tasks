@@ -9,6 +9,11 @@ import (
 	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
 )
 
+// LoadMonthly loads monthly tasks from a file and returns a slice of objects satisfying the Task interface
+func LoadMonthly(fileName string) ([]Task, error) {
+	return load(fileName, newMonthly)
+}
+
 type monthly struct {
 	day  int
 	text string
@@ -41,8 +46,4 @@ func (m *monthly) String() string {
 		"Text": m.text,
 	}, "", "\t")
 	return string(s)
-}
-
-func LoadMonthly(fileName string) ([]Task, error) {
-	return Load(fileName, newMonthly)
 }
