@@ -92,11 +92,27 @@ func TestRecurringDaysFrom(t *testing.T) {
 		// 	now:      time.Date(2023, time.August, 6, 0, 0, 0, 0, time.UTC),
 		// 	expected: 365,
 		// },
-		"next month day": {
+		"next month single date": {
 			r: &recurring{
 				dates: []*date{
 					{
 						month: time.September,
+						day:   6,
+					},
+				},
+			},
+			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
+			expected: 31,
+		},
+		"next month multiple dates": {
+			r: &recurring{
+				dates: []*date{
+					{
+						month: time.September,
+						day:   6,
+					},
+					{
+						month: time.November,
 						day:   6,
 					},
 				},
