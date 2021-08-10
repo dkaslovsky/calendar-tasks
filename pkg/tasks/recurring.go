@@ -62,6 +62,7 @@ func newRecurring(raw *rawLine) (Task, error) {
 
 func (r *recurring) DaysFrom(t time.Time) int {
 	nowYear := t.Year()
+	nowMonth := t.Month()
 	nowLoc := t.Location()
 
 	curDiff := 10e8
@@ -69,7 +70,13 @@ func (r *recurring) DaysFrom(t time.Time) int {
 		curT := time.Date(nowYear, date.month, date.day, 0, 0, 0, 0, nowLoc)
 		diff := curT.Sub(t).Hours() / 24
 		if diff < 0 {
-			diff += 365
+			if nowMonth > time.February && calendar.IsLeapYear(nowYear+1) {
+				diff += 366
+			} else if nowMonth <= time.February && calendar.IsLeapYear(nowYear) {
+				diff += 366
+			} else {
+				diff += 365
+			}
 		}
 		if diff < curDiff {
 			curDiff = diff

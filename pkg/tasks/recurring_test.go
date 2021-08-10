@@ -80,18 +80,66 @@ func TestRecurringDaysFrom(t *testing.T) {
 			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
 			expected: 364,
 		},
-		// "previous day including leap year": {
-		// 	r: &recurring{
-		// 		dates: []*date{
-		// 			{
-		// 				month: time.August,
-		// 				day:   5,
-		// 			},
-		// 		},
-		// 	},
-		// 	now:      time.Date(2023, time.August, 6, 0, 0, 0, 0, time.UTC),
-		// 	expected: 365,
-		// },
+		"previous day including leap year starting past February": {
+			r: &recurring{
+				dates: []*date{
+					{
+						month: time.August,
+						day:   5,
+					},
+				},
+			},
+			now:      time.Date(2023, time.August, 6, 0, 0, 0, 0, time.UTC),
+			expected: 365,
+		},
+		"previous day including leap year starting before February": {
+			r: &recurring{
+				dates: []*date{
+					{
+						month: time.January,
+						day:   5,
+					},
+				},
+			},
+			now:      time.Date(2024, time.January, 6, 0, 0, 0, 0, time.UTC),
+			expected: 365,
+		},
+		"previous day including leap year starting in February": {
+			r: &recurring{
+				dates: []*date{
+					{
+						month: time.February,
+						day:   5,
+					},
+				},
+			},
+			now:      time.Date(2024, time.February, 6, 0, 0, 0, 0, time.UTC),
+			expected: 365,
+		},
+		"previous day including leap year starting on February 28": {
+			r: &recurring{
+				dates: []*date{
+					{
+						month: time.February,
+						day:   27,
+					},
+				},
+			},
+			now:      time.Date(2024, time.February, 28, 0, 0, 0, 0, time.UTC),
+			expected: 365,
+		},
+		"previous day including leap year starting on February 29": {
+			r: &recurring{
+				dates: []*date{
+					{
+						month: time.February,
+						day:   28,
+					},
+				},
+			},
+			now:      time.Date(2024, time.February, 29, 0, 0, 0, 0, time.UTC),
+			expected: 365,
+		},
 		"next month single date": {
 			r: &recurring{
 				dates: []*date{
