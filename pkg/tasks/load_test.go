@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func Test_loadLine(t *testing.T) {
+func TestLoadLine(t *testing.T) {
 	tests := map[string]struct {
 		line      string
 		expected  *rawLine
@@ -65,7 +65,7 @@ func Test_loadLine(t *testing.T) {
 	}
 }
 
-func Test_scan(t *testing.T) {
+func TestScan(t *testing.T) {
 	tests := map[string]struct {
 		r         io.Reader
 		newTask   func(*rawLine) (Task, error)

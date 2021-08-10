@@ -204,7 +204,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 	}
 }
 
-func Test_newRecurring(t *testing.T) {
+func TestNewRecurring(t *testing.T) {
 	tests := map[string]struct {
 		raw           *rawLine
 		expectedDates []*date

@@ -44,7 +44,7 @@ func TestWeeklyDaysFrom(t *testing.T) {
 	}
 }
 
-func Test_newWeekly(t *testing.T) {
+func TestNewWeekly(t *testing.T) {
 	tests := map[string]struct {
 		raw          *rawLine
 		expectedDay  time.Weekday

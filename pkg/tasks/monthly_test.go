@@ -64,7 +64,7 @@ func TestMonthlyDaysFrom(t *testing.T) {
 	}
 }
 
-func Test_newMonthly(t *testing.T) {
+func TestNewMonthly(t *testing.T) {
 	tests := map[string]struct {
 		raw          *rawLine
 		expectedDay  int
