@@ -5,38 +5,58 @@ import (
 	"time"
 )
 
-func TestWeeklyDaysFrom(t *testing.T) {
+func TesnowonthlyDaysFrom(t *testing.T) {
 	tests := map[string]struct {
-		w        *weekly
+		m        *monthly
 		now      time.Time
 		expected int
 	}{
 		"same day": {
-			w:        &weekly{day: time.Friday},
+			m:        &monthly{day: 6},
 			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
 			expected: 0,
 		},
 		"next day": {
-			w:        &weekly{day: time.Saturday},
+			m:        &monthly{day: 7},
 			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
 			expected: 1,
 		},
 		"five days from now": {
-			w:        &weekly{day: time.Wednesday},
+			m:        &monthly{day: 11},
 			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
 			expected: 5,
 		},
-		"previous day": {
-			w:        &weekly{day: time.Thursday},
+		"previous day for month with 31 days": {
+			m:        &monthly{day: 5},
 			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
-			expected: 6,
+			expected: 31,
+		},
+		"five days before for month with 31 days": {
+			m:        &monthly{day: 1},
+			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
+			expected: 26,
+		},
+		"previous day for month with 30 days": {
+			m:        &monthly{day: 5},
+			now:      time.Date(2021, time.June, 6, 0, 0, 0, 0, time.UTC),
+			expected: 30,
+		},
+		"previous day for February": {
+			m:        &monthly{day: 5},
+			now:      time.Date(2021, time.February, 6, 0, 0, 0, 0, time.UTC),
+			expected: 28,
+		},
+		"previous day for February leap year": {
+			m:        &monthly{day: 5},
+			now:      time.Date(2024, time.February, 6, 0, 0, 0, 0, time.UTC),
+			expected: 29,
 		},
 	}
 
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			result := test.w.DaysFrom(test.now)
+			result := test.m.DaysFrom(test.now)
 			if result != test.expected {
 				t.Fatalf("result days %d not equal to expected days %d", result, test.expected)
 			}
@@ -44,10 +64,10 @@ func TestWeeklyDaysFrom(t *testing.T) {
 	}
 }
 
-func Test_newWeekly(t *testing.T) {
+func Test_newMonthly(t *testing.T) {
 	tests := map[string]struct {
 		raw          *rawLine
-		expectedDay  time.Weekday
+		expectedDay  int
 		expectedText string
 		shouldErr    bool
 	}{
@@ -57,16 +77,16 @@ func Test_newWeekly(t *testing.T) {
 		},
 		"invalid date": {
 			raw: &rawLine{
-				date: "funday",
+				date: "not a number",
 			},
 			shouldErr: true,
 		},
 		"non-empty": {
 			raw: &rawLine{
-				date: "Monday",
+				date: "12",
 				text: "foo bar woo",
 			},
-			expectedDay:  time.Monday,
+			expectedDay:  12,
 			expectedText: "foo bar woo",
 			shouldErr:    false,
 		},
@@ -75,7 +95,7 @@ func Test_newWeekly(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			res, err := newWeekly(test.raw)
+			res, err := newMonthly(test.raw)
 			if test.shouldErr {
 				if err == nil {
 					t.Fatal("expected error but result err is nil")
@@ -85,7 +105,7 @@ func Test_newWeekly(t *testing.T) {
 			if !test.shouldErr && err != nil {
 				t.Fatalf("expected nil error but result err is %v", err)
 			}
-			result, ok := res.(*weekly)
+			result, ok := res.(*monthly)
 			if !ok {
 				t.Fatal("type assertion to *weekly failed on result")
 			}
