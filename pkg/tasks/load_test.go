@@ -127,22 +127,25 @@ func TestScan(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 
 			resChan := make(chan Task, 100)
-			done := make(chan struct{})
+			testDone := make(chan struct{})
 			result := []Task{}
 			go func() {
 				for res := range resChan {
 					result = append(result, res)
 				}
-				done <- struct{}{}
+				testDone <- struct{}{}
 			}()
 
-			err := scan(test.r, test.newTask, resChan)
+			done := make(chan struct{}, 100)
+			err := scan(test.r, test.newTask, resChan, done)
 			assertShouldError(t, test.shouldErr, err)
 			if test.shouldErr {
 				return
 			}
 
 			<-done
+			close(resChan)
+			<-testDone
 			assertEqualTestTaskSlice(t, test.expected, result)
 		})
 	}

@@ -17,20 +17,17 @@ type rawLine struct {
 	text string
 }
 
-func load(fileName string, newTask func(*rawLine) (Task, error)) (<-chan Task, error) {
-	out := make(chan Task, 100)
-
+func load(fileName string, newTask func(*rawLine) (Task, error), taskCh chan Task, done chan struct{}) error {
 	f, err := os.Open(filepath.Clean(fileName))
 	if err != nil {
-		return out, fmt.Errorf("failed to load file: %v", err)
+		return fmt.Errorf("failed to load file: %v", err)
 	}
 
-	go scan(f, newTask, out)
-	return out, nil
+	go scan(f, newTask, taskCh, done)
+	return nil
 }
 
-func scan(r io.ReadCloser, newTask func(*rawLine) (Task, error), out chan Task) error {
-	defer close(out)
+func scan(r io.ReadCloser, newTask func(*rawLine) (Task, error), taskCh chan Task, done chan struct{}) error {
 	defer r.Close()
 	nTasks := 0
 
@@ -49,7 +46,7 @@ func scan(r io.ReadCloser, newTask func(*rawLine) (Task, error), out chan Task) 
 			return fmt.Errorf("failed to parse line: %v", err)
 		}
 
-		out <- t
+		taskCh <- t
 		nTasks++
 	}
 
@@ -60,6 +57,7 @@ func scan(r io.ReadCloser, newTask func(*rawLine) (Task, error), out chan Task) 
 		return errors.New("failed to load any tasks")
 	}
 
+	done <- struct{}{}
 	return nil
 }
 

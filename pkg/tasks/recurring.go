@@ -11,8 +11,8 @@ import (
 )
 
 // LoadRecurring loads monthly tasks from a file and returns a slice of objects satisfying the Task interface
-func LoadRecurring(fileName string) (<-chan Task, error) {
-	return load(fileName, newRecurring)
+func LoadRecurring(fileName string, taskCh chan Task, done chan struct{}) error {
+	return load(fileName, newRecurring, taskCh, done)
 }
 
 const monthDelim = "/"

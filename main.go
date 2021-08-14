@@ -16,24 +16,33 @@ func main() {
 
 	n, _ := strconv.Atoi(os.Args[5])
 
-	weekly, err := tasks.LoadWeekly(os.Args[1])
+	taskCh := make(chan tasks.Task, 100)
+	doneCh := make(chan struct{}, 4)
+
+	nReaders := 4
+	err := tasks.LoadWeekly(os.Args[1], taskCh, doneCh)
 	if err != nil {
 		log.Fatal(err)
 	}
-	monthly, err := tasks.LoadMonthly(os.Args[2])
+	err = tasks.LoadMonthly(os.Args[2], taskCh, doneCh)
 	if err != nil {
 		log.Fatal(err)
 	}
-	recurringMonthly, err := tasks.LoadRecurring(os.Args[3])
+	err = tasks.LoadRecurring(os.Args[3], taskCh, doneCh)
 	if err != nil {
 		log.Fatal(err)
 	}
-	daily, err := tasks.LoadRecurring(os.Args[4])
+	err = tasks.LoadRecurring(os.Args[4], taskCh, doneCh)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	grouper.Add(weekly, monthly, recurringMonthly, daily)
+	grouper.Add(taskCh, doneCh, nReaders)
+
+	// for i := 0; i < nReaders; i++ {
+	// 	<-doneCh
+	// }
+	// close(taskCh)
 
 	tasksGroups := grouper.Filter(n)
 	for day := 0; day <= n; day++ {

@@ -21,18 +21,30 @@ func NewGrouper(now time.Time) *Grouper {
 	}
 }
 
-// Add adds tasks from one or more channels to a Grouper
-func (g *Grouper) Add(chs ...<-chan Task) {
+// Add adds tasks from a channel
+func (g *Grouper) Add(ch <-chan Task, done <-chan struct{}, n int) {
 	wg := &sync.WaitGroup{}
-	for i, ch := range chs {
-		wg.Add(1)
-		go func(ch <-chan Task, ii int) {
-			defer wg.Done()
-			for t := range ch {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		nDone := 0
+		for nDone < n {
+			select {
+			case t := <-ch:
 				g.add(t)
+			case <-done:
+				nDone++
 			}
-		}(ch, i)
-	}
+		}
+		for {
+			select {
+			case t := <-ch:
+				g.add(t)
+			default:
+				return
+			}
+		}
+	}()
 	wg.Wait()
 }
 

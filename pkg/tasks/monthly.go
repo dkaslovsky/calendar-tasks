@@ -10,8 +10,8 @@ import (
 )
 
 // LoadMonthly loads monthly tasks from a file and returns a slice of objects satisfying the Task interface
-func LoadMonthly(fileName string) (<-chan Task, error) {
-	return load(fileName, newMonthly)
+func LoadMonthly(fileName string, taskCh chan Task, done chan struct{}) error {
+	return load(fileName, newMonthly, taskCh, done)
 }
 
 type monthly struct {
