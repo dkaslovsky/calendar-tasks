@@ -11,7 +11,7 @@ import (
 )
 
 // LoadRecurring loads monthly tasks from a file and returns a slice of objects satisfying the Task interface
-func LoadRecurring(fileName string) ([]Task, error) {
+func LoadRecurring(fileName string) (<-chan Task, error) {
 	return load(fileName, newRecurring)
 }
 

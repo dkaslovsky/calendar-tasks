@@ -9,7 +9,7 @@ import (
 )
 
 // LoadWeekly loads weekly tasks from a file and returns a slice of objects satisfying the Task interface
-func LoadWeekly(fileName string) ([]Task, error) {
+func LoadWeekly(fileName string) (<-chan Task, error) {
 	return load(fileName, newWeekly)
 }
 

@@ -67,21 +67,21 @@ func TestLoadLine(t *testing.T) {
 
 func TestScan(t *testing.T) {
 	tests := map[string]struct {
-		r         io.Reader
+		r         io.ReadCloser
 		newTask   func(*rawLine) (Task, error)
 		expected  []Task
 		shouldErr bool
 	}{
 		"empty": {
-			r:         strings.NewReader(""),
+			r:         io.NopCloser(strings.NewReader("")),
 			shouldErr: true,
 		},
 		"empty with newlines and spaces": {
-			r:         strings.NewReader("\n  \n\n  "),
+			r:         io.NopCloser(strings.NewReader("\n  \n\n  ")),
 			shouldErr: true,
 		},
 		"valid": {
-			r: strings.NewReader("Saturday: cook\nMonday: clean"),
+			r: io.NopCloser(strings.NewReader("Saturday: cook\nMonday: clean")),
 			newTask: func(rl *rawLine) (Task, error) {
 				return &testTask{
 					id:       rl.text,
@@ -101,7 +101,7 @@ func TestScan(t *testing.T) {
 			shouldErr: false,
 		},
 		"valid with newlines and spaces": {
-			r: strings.NewReader("     \nSaturday: cook\n  \nMonday: clean\n\n"),
+			r: io.NopCloser(strings.NewReader("     \nSaturday: cook\n  \nMonday: clean\n\n")),
 			newTask: func(rl *rawLine) (Task, error) {
 				return &testTask{
 					id:       rl.text,
@@ -125,11 +125,24 @@ func TestScan(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			result, err := scan(test.r, test.newTask)
+
+			resChan := make(chan Task, 100)
+			done := make(chan struct{})
+			result := []Task{}
+			go func() {
+				for res := range resChan {
+					result = append(result, res)
+				}
+				done <- struct{}{}
+			}()
+
+			err := scan(test.r, test.newTask, resChan)
 			assertShouldError(t, test.shouldErr, err)
 			if test.shouldErr {
 				return
 			}
+
+			<-done
 			assertEqualTestTaskSlice(t, test.expected, result)
 		})
 	}

@@ -14,39 +14,26 @@ func main() {
 	now := time.Now()
 	grouper := tasks.NewGrouper(now)
 
+	n, _ := strconv.Atoi(os.Args[5])
+
 	weekly, err := tasks.LoadWeekly(os.Args[1])
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, t := range weekly {
-		grouper.Add(t)
-	}
-
 	monthly, err := tasks.LoadMonthly(os.Args[2])
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, t := range monthly {
-		grouper.Add(t)
-	}
-
 	recurringMonthly, err := tasks.LoadRecurring(os.Args[3])
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, t := range recurringMonthly {
-		grouper.Add(t)
-	}
-
 	daily, err := tasks.LoadRecurring(os.Args[4])
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, t := range daily {
-		grouper.Add(t)
-	}
 
-	n, _ := strconv.Atoi(os.Args[5])
+	grouper.Add(weekly, monthly, recurringMonthly, daily)
 
 	tasksGroups := grouper.Filter(n)
 	for day := 0; day <= n; day++ {

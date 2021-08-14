@@ -17,17 +17,23 @@ type rawLine struct {
 	text string
 }
 
-func load(fileName string, newTask func(*rawLine) (Task, error)) ([]Task, error) {
+func load(fileName string, newTask func(*rawLine) (Task, error)) (<-chan Task, error) {
+	out := make(chan Task, 100)
+
 	f, err := os.Open(filepath.Clean(fileName))
 	if err != nil {
-		return []Task{}, fmt.Errorf("failed to load file: %v", err)
+		return out, fmt.Errorf("failed to load file: %v", err)
 	}
-	defer f.Close()
-	return scan(f, newTask)
+
+	go scan(f, newTask, out)
+	return out, nil
 }
 
-func scan(r io.Reader, newTask func(*rawLine) (Task, error)) ([]Task, error) {
-	tasks := []Task{}
+func scan(r io.ReadCloser, newTask func(*rawLine) (Task, error), out chan Task) error {
+	defer close(out)
+	defer r.Close()
+	nTasks := 0
+
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -36,21 +42,25 @@ func scan(r io.Reader, newTask func(*rawLine) (Task, error)) ([]Task, error) {
 		}
 		rl, err := loadLine(line)
 		if err != nil {
-			return tasks, fmt.Errorf("failed to load line: %v", err)
+			return fmt.Errorf("failed to load line: %v", err)
 		}
 		t, err := newTask(rl)
 		if err != nil {
-			return tasks, fmt.Errorf("failed to parse line: %v", err)
+			return fmt.Errorf("failed to parse line: %v", err)
 		}
-		tasks = append(tasks, t)
+
+		out <- t
+		nTasks++
 	}
+
 	if err := scanner.Err(); err != nil {
-		return tasks, err
+		return err
 	}
-	if len(tasks) == 0 {
-		return tasks, errors.New("failed to load any tasks")
+	if nTasks == 0 {
+		return errors.New("failed to load any tasks")
 	}
-	return tasks, scanner.Err()
+
+	return nil
 }
 
 func loadLine(line string) (*rawLine, error) {

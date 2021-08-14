@@ -10,7 +10,7 @@ import (
 )
 
 // LoadMonthly loads monthly tasks from a file and returns a slice of objects satisfying the Task interface
-func LoadMonthly(fileName string) ([]Task, error) {
+func LoadMonthly(fileName string) (<-chan Task, error) {
 	return load(fileName, newMonthly)
 }
 

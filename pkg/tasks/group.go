@@ -1,12 +1,15 @@
 package tasks
 
-import "time"
-
-// TODO: make Grouper thread safe?
+import (
+	"sync"
+	"time"
+)
 
 // Grouper groups tasks by the number of days until they are to occur
 type Grouper struct {
-	now   time.Time
+	now time.Time
+
+	lock  sync.RWMutex
 	tasks map[int][]Task
 }
 
@@ -18,8 +21,24 @@ func NewGrouper(now time.Time) *Grouper {
 	}
 }
 
-// Add adds a task to a Grouper
-func (g *Grouper) Add(t Task) {
+// Add adds tasks from one or more channels to a Grouper
+func (g *Grouper) Add(chs ...<-chan Task) {
+	wg := &sync.WaitGroup{}
+	for i, ch := range chs {
+		wg.Add(1)
+		go func(ch <-chan Task, ii int) {
+			defer wg.Done()
+			for t := range ch {
+				g.add(t)
+			}
+		}(ch, i)
+	}
+	wg.Wait()
+}
+
+func (g *Grouper) add(t Task) {
+	g.lock.Lock()
+	defer g.lock.Unlock()
 	days := t.DaysFrom(g.now)
 	if _, exists := g.tasks[days]; !exists {
 		g.tasks[days] = []Task{}
@@ -29,6 +48,8 @@ func (g *Grouper) Add(t Task) {
 
 // Filter returns groups of tasks to occur within a specified number of days
 func (g *Grouper) Filter(nDays int) map[int][]Task {
+	g.lock.RLock()
+	defer g.lock.RUnlock()
 	gg := NewGrouper(g.now)
 	// start the loop at today (0) and include nDays
 	for day := 0; day <= nDays; day++ {
@@ -37,7 +58,7 @@ func (g *Grouper) Filter(nDays int) map[int][]Task {
 			continue
 		}
 		for _, t := range tasks {
-			gg.Add(t)
+			gg.add(t)
 		}
 	}
 	return gg.tasks

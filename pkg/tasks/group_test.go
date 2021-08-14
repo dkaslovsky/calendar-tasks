@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func TestAdd(t *testing.T) {
+func TestAddOne(t *testing.T) {
 	tests := map[string]struct {
 		tasks         []*testTask
 		expectedTasks map[int][]Task
@@ -95,7 +95,7 @@ func TestAdd(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			g := NewGrouper(time.Now())
 			for _, tsk := range test.tasks {
-				g.Add(tsk)
+				g.add(tsk)
 			}
 			assertEqualTestTaskMap(t, test.expectedTasks, g.tasks)
 		})
