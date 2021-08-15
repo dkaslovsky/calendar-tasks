@@ -8,10 +8,10 @@ import (
 	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
 )
 
-// LoadWeekly loads weekly tasks from a file and sends them on a specified channel
-func LoadWeekly(fileName string, taskCh chan Task, done chan struct{}) error {
-	return load(fileName, newWeekly, taskCh, done)
-}
+// // LoadWeekly loads weekly tasks from a file and sends them on a specified channel
+// func LoadWeekly(l *Loader, fileName string) error {
+// 	return load(l, fileName, newWeekly)
+// }
 
 type weekly struct {
 	day  time.Weekday

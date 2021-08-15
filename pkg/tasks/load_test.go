@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"context"
 	"io"
 	"strings"
 	"testing"
@@ -136,14 +137,12 @@ func TestScan(t *testing.T) {
 				testDone <- struct{}{}
 			}()
 
-			done := make(chan struct{}, 100)
-			err := scan(test.r, test.newTask, resChan, done)
+			err := scan(context.Background(), test.r, test.newTask, resChan)
 			assertShouldError(t, test.shouldErr, err)
 			if test.shouldErr {
 				return
 			}
 
-			<-done
 			close(resChan)
 			<-testDone
 			assertEqualTestTaskSlice(t, test.expected, result)
