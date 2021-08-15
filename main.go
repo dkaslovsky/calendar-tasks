@@ -28,7 +28,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	consumer := tasks.NewConsumer(now, maxDays, loader.Ch, loader.Wait)
+	consumer := tasks.NewConsumer(now, maxDays, loader.Ch, loader.Close)
 	err = consumer.Start()
 	if err != nil {
 		log.Fatal(err)
