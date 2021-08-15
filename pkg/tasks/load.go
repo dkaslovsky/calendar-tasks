@@ -50,7 +50,7 @@ func scan(r io.Reader, newTask func(*rawLine) (Task, error)) ([]Task, error) {
 	if len(tasks) == 0 {
 		return tasks, errors.New("failed to load any tasks")
 	}
-	return tasks, scanner.Err()
+	return tasks, nil
 }
 
 func loadLine(line string) (*rawLine, error) {
