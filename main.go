@@ -39,11 +39,6 @@ func main() {
 
 	grouper.Add(taskCh, doneCh, nReaders)
 
-	// for i := 0; i < nReaders; i++ {
-	// 	<-doneCh
-	// }
-	// close(taskCh)
-
 	tasksGroups := grouper.Filter(n)
 	for day := 0; day <= n; day++ {
 		tasks, ok := tasksGroups[day]

@@ -3,6 +3,7 @@ package tasks
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -83,8 +84,7 @@ func (r *recurring) DaysFrom(t time.Time) int {
 		}
 	}
 
-	// cast to integer does not lose precision because day is finest time granularity available
-	return int(curDiff)
+	return int(math.Ceil(curDiff))
 }
 
 func (r *recurring) String() string {

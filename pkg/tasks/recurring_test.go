@@ -191,6 +191,42 @@ func TestRecurringDaysFrom(t *testing.T) {
 			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
 			expected: 31,
 		},
+		"within 24 hours": {
+			r: &recurring{
+				dates: []*date{
+					{
+						month: time.August,
+						day:   15,
+					},
+				},
+			},
+			now:      time.Date(2021, time.August, 14, 18, 0, 0, 0, time.UTC),
+			expected: 1,
+		},
+		"one second away from today": {
+			r: &recurring{
+				dates: []*date{
+					{
+						month: time.August,
+						day:   15,
+					},
+				},
+			},
+			now:      time.Date(2021, time.August, 14, 23, 59, 59, 0, time.UTC),
+			expected: 1,
+		},
+		"exactly same time": {
+			r: &recurring{
+				dates: []*date{
+					{
+						month: time.August,
+						day:   15,
+					},
+				},
+			},
+			now:      time.Date(2021, time.August, 15, 0, 0, 0, 0, time.UTC),
+			expected: 0,
+		},
 	}
 
 	for name, test := range tests {
