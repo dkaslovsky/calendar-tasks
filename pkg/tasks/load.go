@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"strings"
 )
 
@@ -40,8 +39,6 @@ type rawLine struct {
 // }
 
 func scan(ctx context.Context, r io.ReadCloser, newTask func(*rawLine) (Task, error), taskCh chan Task) error {
-	log.Print("starting up")
-
 	defer r.Close()
 	nTasks := 0
 
@@ -49,7 +46,6 @@ func scan(ctx context.Context, r io.ReadCloser, newTask func(*rawLine) (Task, er
 	for scanner.Scan() {
 		select {
 		case <-ctx.Done():
-			log.Print("shutting down")
 			return ctx.Err()
 		default:
 		}

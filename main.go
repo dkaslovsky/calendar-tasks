@@ -4,13 +4,21 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sync"
+	"sort"
+	"strconv"
+	"time"
 
 	"github.com/dkaslovsky/calendar-tasks/pkg/tasks"
 )
 
 func main() {
+	maxDays, _ := strconv.Atoi(os.Args[5])
+
+	// now := time.Now()
+	now := time.Date(2021, 8, 14, 18, 0, 0, 0, time.Local)
+
 	loader := tasks.NewLoader()
+	consumer := tasks.NewConsumer(now, maxDays, loader.Ch, loader.Wait)
 
 	err := loader.Load(
 		[]string{os.Args[1]},
@@ -18,39 +26,21 @@ func main() {
 		[]string{os.Args[3], os.Args[4]},
 	)
 	if err != nil {
-		fmt.Println("XXXX")
 		log.Fatal(err)
 	}
 
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		for t := range loader.Ch {
-			fmt.Println(t)
+	err = consumer.Start()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for day, ts := range consumer.Get() {
+		fmt.Printf("Day = %d\n", day)
+		sort.Slice(ts, func(i, j int) bool {
+			return ts[i].String() > ts[j].String()
+		})
+		for _, task := range ts {
+			fmt.Println(task)
 		}
-	}()
-
-	if err := loader.Wait(); err != nil {
-		log.Fatal(err)
 	}
-
-	wg.Wait()
-
-	// now := time.Date(2021, 8, 14, 18, 0, 0, 0, time.Local)
-	// grouper := tasks.NewGrouper(now)
-	// grouper.Add(taskCh, doneCh, nReaders)
-
-	// n, _ := strconv.Atoi(os.Args[5])
-	// tasksGroups := grouper.Filter(n)
-	// for day := 0; day <= n; day++ {
-	// 	tasks, ok := tasksGroups[day]
-	// 	if !ok {
-	// 		continue
-	// 	}
-	// 	fmt.Printf("Day = %d\n", day)
-	// 	for _, task := range tasks {
-	// 		fmt.Println(task)
-	// 	}
-	// }
 }
