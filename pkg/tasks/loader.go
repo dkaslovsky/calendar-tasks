@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"context"
+	"io"
 	"os"
 
 	"golang.org/x/sync/errgroup"
@@ -28,16 +29,27 @@ func NewLoader() *Loader {
 }
 
 func (l *Loader) Load(weekly []string, monthly []string, recurring []string) error {
+	// pool of workers, one for each of weekly, monthly, recurring
+	weeklyCh := make(chan io.ReadCloser)
+	l.eg.Go(func() error {
+		return l.scanWorker(weeklyCh, newWeekly)
+	})
+	monthlyCh := make(chan io.ReadCloser)
+	l.eg.Go(func() error {
+		return l.scanWorker(monthlyCh, newMonthly)
+	})
+	recurringCh := make(chan io.ReadCloser)
+	l.eg.Go(func() error {
+		return l.scanWorker(recurringCh, newRecurring)
+	})
+
 	for _, w := range weekly {
 		f, err := os.Open(w)
 		if err != nil {
 			l.cancel()
 			return err
 		}
-
-		l.eg.Go(func() error {
-			return scan(l.ctx, f, newWeekly, l.Ch)
-		})
+		weeklyCh <- f
 	}
 
 	for _, m := range monthly {
@@ -46,10 +58,7 @@ func (l *Loader) Load(weekly []string, monthly []string, recurring []string) err
 			l.cancel()
 			return err
 		}
-
-		l.eg.Go(func() error {
-			return scan(l.ctx, f, newMonthly, l.Ch)
-		})
+		monthlyCh <- f
 	}
 
 	for _, r := range recurring {
@@ -58,11 +67,12 @@ func (l *Loader) Load(weekly []string, monthly []string, recurring []string) err
 			l.cancel()
 			return err
 		}
-
-		l.eg.Go(func() error {
-			return scan(l.ctx, f, newRecurring, l.Ch)
-		})
+		recurringCh <- f
 	}
+
+	close(weeklyCh)
+	close(monthlyCh)
+	close(recurringCh)
 
 	return nil
 }
@@ -70,4 +80,14 @@ func (l *Loader) Load(weekly []string, monthly []string, recurring []string) err
 func (l *Loader) Wait() error {
 	defer close(l.Ch)
 	return l.eg.Wait()
+}
+
+func (l *Loader) scanWorker(rcs <-chan io.ReadCloser, newTask func(*rawLine) (Task, error)) error {
+	for r := range rcs {
+		err := scan(l.ctx, r, newTask, l.Ch)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
