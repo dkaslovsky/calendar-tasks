@@ -33,7 +33,7 @@ func newMonthly(raw *rawLine) (Task, error) {
 }
 
 func (m *monthly) DaysFrom(t time.Time) int {
-	diff := int(m.day - t.Day())
+	diff := m.day - t.Day()
 	if diff >= 0 {
 		return diff
 	}
