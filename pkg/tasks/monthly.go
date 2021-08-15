@@ -9,7 +9,7 @@ import (
 	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
 )
 
-// LoadMonthly loads monthly tasks from a file and returns a slice of objects satisfying the Task interface
+// LoadMonthly loads monthly tasks from a file and sends them on a specified channel
 func LoadMonthly(fileName string, taskCh chan Task, done chan struct{}) error {
 	return load(fileName, newMonthly, taskCh, done)
 }

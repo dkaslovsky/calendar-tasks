@@ -11,7 +11,7 @@ import (
 	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
 )
 
-// LoadRecurring loads monthly tasks from a file and returns a slice of objects satisfying the Task interface
+// LoadRecurring loads recurring tasks specified by one or more month+day prefixes and sends them on a specified channel
 func LoadRecurring(fileName string, taskCh chan Task, done chan struct{}) error {
 	return load(fileName, newRecurring, taskCh, done)
 }

@@ -36,6 +36,7 @@ func (g *Grouper) Add(ch <-chan Task, done <-chan struct{}, n int) {
 				nDone++
 			}
 		}
+		// drain remaining tasks
 		for {
 			select {
 			case t := <-ch:
