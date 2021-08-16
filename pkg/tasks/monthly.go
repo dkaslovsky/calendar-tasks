@@ -33,6 +33,14 @@ func newMonthly(raw *rawLine) (Task, error) {
 }
 
 func (m *monthly) DaysFrom(t time.Time) int {
+	// handle the case where the day is bigger than the number of days in the month
+	if d := calendar.DaysInMonth(t.AddDate(0, -1, 0)); d < m.day {
+		diff := m.day - (t.Day() + d)
+		if diff >= 0 {
+			return diff
+		}
+	}
+
 	diff := m.day - t.Day()
 	if diff >= 0 {
 		return diff

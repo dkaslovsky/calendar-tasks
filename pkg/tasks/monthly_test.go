@@ -51,6 +51,31 @@ func TestMonthlyDaysFrom(t *testing.T) {
 			now:      time.Date(2024, time.February, 6, 0, 0, 0, 0, time.UTC),
 			expected: 28,
 		},
+		"scheduled for 30th in February": {
+			m:        &monthly{day: 30},
+			now:      time.Date(2021, time.February, 20, 0, 0, 0, 0, time.UTC),
+			expected: 10,
+		},
+		"scheduled for 30th with month rolled over to March": {
+			m:        &monthly{day: 30},
+			now:      time.Date(2021, time.March, 1, 0, 0, 0, 0, time.UTC),
+			expected: 1,
+		},
+		"scheduled for 30th with month rolled over to March in leap year": {
+			m:        &monthly{day: 30},
+			now:      time.Date(2024, time.March, 1, 0, 0, 0, 0, time.UTC),
+			expected: 0,
+		},
+		"scheduled for 29th with month rolled over to March in leap year": {
+			m:        &monthly{day: 29},
+			now:      time.Date(2024, time.March, 1, 0, 0, 0, 0, time.UTC),
+			expected: 28,
+		},
+		"scheduled for 31st with month rolled over to October": {
+			m:        &monthly{day: 31},
+			now:      time.Date(2021, time.October, 1, 0, 0, 0, 0, time.UTC),
+			expected: 0,
+		},
 	}
 
 	for name, test := range tests {
