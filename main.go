@@ -28,13 +28,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	consumer := tasks.NewConsumer(now, maxDays, loader.Ch, loader.Close)
+	consumer := tasks.NewConsumer(now, maxDays, loader.Ch, loader.Wait)
 	err = consumer.Start()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	for day, ts := range consumer.Get() {
+	PrintTasks(consumer.Get())
+
+}
+
+func PrintTasks(tsMap map[int][]tasks.Task) {
+	for day, ts := range tsMap {
 		fmt.Printf("Day = %d\n", day)
 		sort.Slice(ts, func(i, j int) bool {
 			return strings.ToLower(ts[i].String()) > strings.ToLower(ts[j].String())

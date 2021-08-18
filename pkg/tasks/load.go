@@ -55,15 +55,15 @@ func (l *Loader) AddRecurring(s ...string) {
 
 func (l *Loader) Start() error {
 	// one worker for each type of task (weekly, monthly, recurring)
-	weeklyCh := make(chan io.ReadCloser)
+	weeklyCh := make(chan io.ReadCloser, len(l.weekly))
 	l.eg.Go(func() error {
 		return l.scan(weeklyCh, newWeekly)
 	})
-	monthlyCh := make(chan io.ReadCloser)
+	monthlyCh := make(chan io.ReadCloser, len(l.monthly))
 	l.eg.Go(func() error {
 		return l.scan(monthlyCh, newMonthly)
 	})
-	recurringCh := make(chan io.ReadCloser)
+	recurringCh := make(chan io.ReadCloser, len(l.recurring))
 	l.eg.Go(func() error {
 		return l.scan(recurringCh, newRecurring)
 	})
@@ -100,7 +100,7 @@ func (l *Loader) Start() error {
 	return nil
 }
 
-func (l *Loader) Close() error {
+func (l *Loader) Wait() error {
 	defer close(l.Ch)
 	return l.eg.Wait()
 }
@@ -114,42 +114,6 @@ func (l *Loader) scan(rcs <-chan io.ReadCloser, newTask func(*rawLine) (Task, er
 	}
 	return nil
 }
-
-// type scanPool struct {
-// 	weeklyCh    chan io.ReadCloser
-// 	monthlyCh   chan io.ReadCloser
-// 	recurringCh chan io.ReadCloser
-
-// 	loader *Loader
-// }
-
-// func newScanPool(loader *Loader) *scanPool {
-// 	return &scanPool{
-// 		weeklyCh:    make(chan io.ReadCloser),
-// 		monthlyCh:   make(chan io.ReadCloser),
-// 		recurringCh: make(chan io.ReadCloser),
-
-// 		loader: loader,
-// 	}
-// }
-
-// func (s *scanPool) Start() {
-// 	s.loader.eg.Go(func() error {
-// 		return s.loader.scan(s.weeklyCh, newWeekly)
-// 	})
-// 	s.loader.eg.Go(func() error {
-// 		return s.loader.scan(s.monthlyCh, newMonthly)
-// 	})
-// 	s.loader.eg.Go(func() error {
-// 		return s.loader.scan(s.recurringCh, newRecurring)
-// 	})
-// }
-
-// func (s *scanPool) Close() {
-// 	close(s.weeklyCh)
-// 	close(s.monthlyCh)
-// 	close(s.recurringCh)
-// }
 
 func scan(ctx context.Context, r io.ReadCloser, newTask func(*rawLine) (Task, error), taskCh chan Task) error {
 	defer r.Close()

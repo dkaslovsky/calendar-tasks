@@ -9,20 +9,20 @@ type Consumer struct {
 	now     time.Time
 	maxDays int
 
-	in         <-chan Task
-	loadCloser func() error
+	in   <-chan Task
+	wait func() error
 
 	lock  sync.RWMutex
 	tasks map[int][]Task
 }
 
-func NewConsumer(now time.Time, maxDays int, in <-chan Task, loadCloser func() error) *Consumer {
+func NewConsumer(now time.Time, maxDays int, in <-chan Task, wait func() error) *Consumer {
 	return &Consumer{
 		now:     now,
 		maxDays: maxDays,
 
-		in:         in,
-		loadCloser: loadCloser,
+		in:   in,
+		wait: wait,
 
 		tasks: make(map[int][]Task),
 	}
@@ -38,7 +38,7 @@ func (c *Consumer) Start() error {
 		}
 	}()
 
-	err := c.loadCloser()
+	err := c.wait()
 	if err != nil {
 		return err
 	}
