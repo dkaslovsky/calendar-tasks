@@ -14,7 +14,8 @@ import (
 )
 
 type Loader struct {
-	Ch chan Task
+	ch   chan Task
+	done chan struct{}
 
 	weekly    []string
 	monthly   []string
@@ -25,11 +26,12 @@ type Loader struct {
 	eg     *errgroup.Group
 }
 
-func NewLoader() *Loader {
+func NewLoader(ch chan Task, done chan struct{}) *Loader {
 	ctx, cancel := context.WithCancel(context.Background())
 	eg, ctx := errgroup.WithContext(ctx)
 	return &Loader{
-		Ch: make(chan Task, 100), // TODO: make channel buffer size configurable
+		ch:   ch,
+		done: done,
 
 		weekly:    []string{},
 		monthly:   []string{},
@@ -54,7 +56,7 @@ func (l *Loader) AddRecurring(s ...string) {
 }
 
 func (l *Loader) Start() error {
-	// one worker for each type of task (weekly, monthly, recurring)
+	// start one worker for each type of task (weekly, monthly, recurring)
 	weeklyCh := make(chan io.ReadCloser, len(l.weekly))
 	l.eg.Go(func() error {
 		return l.scan(weeklyCh, newWeekly)
@@ -101,13 +103,15 @@ func (l *Loader) Start() error {
 }
 
 func (l *Loader) Wait() error {
-	defer close(l.Ch)
+	defer func() {
+		l.done <- struct{}{}
+	}()
 	return l.eg.Wait()
 }
 
 func (l *Loader) scan(rcs <-chan io.ReadCloser, newTask func(*rawLine) (Task, error)) error {
 	for r := range rcs {
-		err := scan(l.ctx, r, newTask, l.Ch)
+		err := scan(l.ctx, r, newTask, l.ch)
 		if err != nil {
 			return err
 		}

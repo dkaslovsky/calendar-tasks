@@ -10,41 +10,60 @@ type Consumer struct {
 	maxDays int
 
 	in   <-chan Task
-	wait func() error
+	done <-chan struct{}
 
+	wg    *sync.WaitGroup
 	lock  sync.RWMutex
 	tasks map[int][]Task
 }
 
-func NewConsumer(now time.Time, maxDays int, in <-chan Task, wait func() error) *Consumer {
+func NewConsumer(now time.Time, maxDays int, in <-chan Task, done <-chan struct{}) *Consumer {
 	return &Consumer{
 		now:     now,
 		maxDays: maxDays,
 
 		in:   in,
-		wait: wait,
+		done: done,
 
+		wg:    &sync.WaitGroup{},
+		lock:  sync.RWMutex{},
 		tasks: make(map[int][]Task),
 	}
 }
 
-func (c *Consumer) Start() error {
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
+func (c *Consumer) Start() {
+	c.wg.Add(1)
 	go func() {
-		defer wg.Done()
-		for t := range c.in {
-			c.add(t)
+		defer c.wg.Done()
+		for {
+			select {
+			case t := <-c.in:
+				c.add(t)
+			case <-c.done:
+				c.drain()
+				return
+			}
 		}
 	}()
+}
 
-	err := c.wait()
-	if err != nil {
-		return err
+func (c *Consumer) Wait() {
+	c.wg.Wait()
+}
+
+func (c *Consumer) Tasks() map[int][]Task {
+	return c.tasks
+}
+
+func (c *Consumer) drain() {
+	for {
+		select {
+		case t := <-c.in:
+			c.add(t)
+		default:
+			return
+		}
 	}
-
-	wg.Wait()
-	return nil
 }
 
 func (c *Consumer) add(t Task) {
@@ -59,8 +78,4 @@ func (c *Consumer) add(t Task) {
 		c.tasks[days] = []Task{}
 	}
 	c.tasks[days] = append(c.tasks[days], t)
-}
-
-func (c *Consumer) Get() map[int][]Task {
-	return c.tasks
 }

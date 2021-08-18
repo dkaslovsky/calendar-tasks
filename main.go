@@ -13,12 +13,17 @@ import (
 )
 
 func main() {
-	maxDays, _ := strconv.Atoi(os.Args[5])
 
 	// now := time.Now()
 	now := time.Date(2021, 8, 14, 18, 0, 0, 0, time.Local)
+	maxDays, _ := strconv.Atoi(os.Args[5])
 
-	loader := tasks.NewLoader()
+	taskChan := make(chan tasks.Task, 100) // TODO: make buffer size configurable
+	done := make(chan struct{})
+
+	loader := tasks.NewLoader(taskChan, done)
+	consumer := tasks.NewConsumer(now, maxDays, taskChan, done)
+
 	loader.AddWeekly(os.Args[1])
 	loader.AddMonthly(os.Args[2])
 	loader.AddRecurring(os.Args[3], os.Args[4])
@@ -27,15 +32,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	consumer.Start()
 
-	consumer := tasks.NewConsumer(now, maxDays, loader.Ch, loader.Wait)
-	err = consumer.Start()
+	err = loader.Wait()
 	if err != nil {
 		log.Fatal(err)
 	}
+	consumer.Wait()
 
-	PrintTasks(consumer.Get())
-
+	PrintTasks(consumer.Tasks())
 }
 
 func PrintTasks(tsMap map[int][]tasks.Task) {
