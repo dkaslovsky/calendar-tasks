@@ -27,15 +27,13 @@ func main() {
 	loader.AddRecurring(os.Args[3], os.Args[4])
 
 	consumer := tasks.NewConsumer(now, maxDays, taskChan, done)
-
-	// processing:
-	// start the consumer, start loading from files, wait for the consumer to finish consuming
 	consumer.Start()
-	err := loader.Start()
+	defer consumer.Wait()
+
+	err := loader.Load()
 	if err != nil {
 		log.Fatal(err)
 	}
-	consumer.Wait()
 
 	printTasks(consumer.Tasks(), maxDays)
 }

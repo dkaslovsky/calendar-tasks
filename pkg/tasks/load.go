@@ -55,7 +55,7 @@ func (l *Loader) AddRecurring(s ...string) {
 	l.recurring = append(l.recurring, s...)
 }
 
-func (l *Loader) Start() error {
+func (l *Loader) Load() error {
 	defer func() {
 		l.done <- struct{}{}
 	}()
