@@ -22,30 +22,31 @@ func main() {
 	done := make(chan struct{})
 
 	loader := tasks.NewLoader(taskChan, done)
-	consumer := tasks.NewConsumer(now, maxDays, taskChan, done)
-
 	loader.AddWeekly(os.Args[1])
 	loader.AddMonthly(os.Args[2])
 	loader.AddRecurring(os.Args[3], os.Args[4])
 
-	err := loader.Start()
-	if err != nil {
-		log.Fatal(err)
-	}
-	consumer.Start()
+	consumer := tasks.NewConsumer(now, maxDays, taskChan, done)
 
-	err = loader.Wait()
+	// processing:
+	// start the consumer, start loading from files, wait for the consumer to finish consuming
+	consumer.Start()
+	err := loader.Start()
 	if err != nil {
 		log.Fatal(err)
 	}
 	consumer.Wait()
 
-	PrintTasks(consumer.Tasks())
+	printTasks(consumer.Tasks(), maxDays)
 }
 
-func PrintTasks(tsMap map[int][]tasks.Task) {
-	for day, ts := range tsMap {
+func printTasks(tsMap map[int][]tasks.Task, n int) {
+	for day := 0; day <= n; day++ {
 		fmt.Printf("Day = %d\n", day)
+		ts, ok := tsMap[day]
+		if !ok {
+			fmt.Println("No tasks")
+		}
 		sort.Slice(ts, func(i, j int) bool {
 			return strings.ToLower(ts[i].String()) > strings.ToLower(ts[j].String())
 		})

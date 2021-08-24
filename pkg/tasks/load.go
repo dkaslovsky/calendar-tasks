@@ -56,6 +56,10 @@ func (l *Loader) AddRecurring(s ...string) {
 }
 
 func (l *Loader) Start() error {
+	defer func() {
+		l.done <- struct{}{}
+	}()
+
 	// start one worker for each type of task (weekly, monthly, recurring)
 	weeklyCh := make(chan io.ReadCloser, len(l.weekly))
 	l.eg.Go(func() error {
@@ -70,7 +74,7 @@ func (l *Loader) Start() error {
 		return l.scan(recurringCh, newRecurring)
 	})
 
-	// process each task file
+	// process each weekly task file
 	for _, fp := range l.weekly {
 		f, err := os.Open(filepath.Clean(fp))
 		if err != nil {
@@ -79,6 +83,7 @@ func (l *Loader) Start() error {
 		}
 		weeklyCh <- f
 	}
+	// process each monthly task file
 	for _, fp := range l.monthly {
 		f, err := os.Open(filepath.Clean(fp))
 		if err != nil {
@@ -87,6 +92,7 @@ func (l *Loader) Start() error {
 		}
 		monthlyCh <- f
 	}
+	// process each recurring task file
 	for _, fp := range l.recurring {
 		f, err := os.Open(filepath.Clean(fp))
 		if err != nil {
@@ -99,13 +105,6 @@ func (l *Loader) Start() error {
 	close(weeklyCh)
 	close(monthlyCh)
 	close(recurringCh)
-	return nil
-}
-
-func (l *Loader) Wait() error {
-	defer func() {
-		l.done <- struct{}{}
-	}()
 	return l.eg.Wait()
 }
 
