@@ -1,11 +1,10 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
-	"os"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -14,26 +13,34 @@ import (
 
 func main() {
 
+	opts := cmdOpts{}
+
+	flag.IntVar(&opts.maxDays, "days", 0, "days from now to get tasks")
+	flag.Var(&opts.weeklySources, "weekly", "weekly task source file")
+	flag.Var(&opts.monthlySources, "monthly", "monthly task source file")
+	flag.Var(&opts.recurringSources, "recurring", "recurring task source file")
+	flag.Parse()
+
 	// now := time.Now()
 	now := time.Date(2021, 8, 14, 18, 0, 0, 0, time.Local)
-	maxDays, _ := strconv.Atoi(os.Args[5])
+	log.Printf("DEBUG MODE - USING FIXED DATE: %s", now)
 
-	taskChan := make(chan tasks.Task, 100) // TODO: make buffer size configurable
+	taskChan := make(chan tasks.Task, 1000) // buffer size is large enough for a reasonable amount of tasks
 	done := make(chan struct{})
 
 	loader := tasks.NewLoader(taskChan, done)
-	loader.AddWeeklySource(os.Args[1])
-	loader.AddMonthlySource(os.Args[2])
-	loader.AddRecurringSource(os.Args[3], os.Args[4])
+	loader.AddWeeklySource(opts.weeklySources...)
+	loader.AddMonthlySource(opts.monthlySources...)
+	loader.AddRecurringSource(opts.recurringSources...)
 
-	processor := tasks.NewProcessor(now, maxDays, taskChan, done)
+	processor := tasks.NewProcessor(now, opts.maxDays, taskChan, done)
 
 	err := run(loader, processor)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	printTasks(processor.Tasks(), maxDays)
+	printTasks(processor.Tasks(), opts.maxDays)
 }
 
 func run(loader *tasks.Loader, processor *tasks.Processor) error {
@@ -62,4 +69,22 @@ func printTasks(tsMap map[int][]tasks.Task, n int) {
 			fmt.Println(task)
 		}
 	}
+}
+
+type cmdOpts struct {
+	maxDays          int
+	weeklySources    stringSliceArg
+	monthlySources   stringSliceArg
+	recurringSources stringSliceArg
+}
+
+type stringSliceArg []string
+
+func (s *stringSliceArg) String() string {
+	return strings.Join(*s, " ")
+}
+
+func (s *stringSliceArg) Set(val string) error {
+	*s = append(*s, val)
+	return nil
 }

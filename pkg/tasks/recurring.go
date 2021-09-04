@@ -11,11 +11,6 @@ import (
 	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
 )
 
-// // LoadRecurring loads recurring tasks specified by one or more month+day prefixes and sends them on a specified channel
-// func LoadRecurring(l *Loader, fileName string) error {
-// 	return load(l, fileName, newRecurring)
-// }
-
 const monthDelim = "/"
 
 type date struct {
