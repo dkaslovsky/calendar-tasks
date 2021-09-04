@@ -43,19 +43,19 @@ func NewLoader(ch chan Task, done chan struct{}) *Loader {
 	}
 }
 
-func (l *Loader) AddWeekly(s ...string) {
+func (l *Loader) AddWeeklySource(s ...string) {
 	l.weekly = append(l.weekly, s...)
 }
 
-func (l *Loader) AddMonthly(s ...string) {
+func (l *Loader) AddMonthlySource(s ...string) {
 	l.monthly = append(l.monthly, s...)
 }
 
-func (l *Loader) AddRecurring(s ...string) {
+func (l *Loader) AddRecurringSource(s ...string) {
 	l.recurring = append(l.recurring, s...)
 }
 
-func (l *Loader) Load() error {
+func (l *Loader) Start() error {
 	defer func() {
 		l.done <- struct{}{}
 	}()
