@@ -13,34 +13,25 @@ import (
 
 func main() {
 
-	opts := cmdOpts{}
-
-	flag.IntVar(&opts.maxDays, "days", 0, "days from now to get tasks")
-	flag.Var(&opts.weeklySources, "weekly", "weekly task source file")
-	flag.Var(&opts.monthlySources, "monthly", "monthly task source file")
-	flag.Var(&opts.recurringSources, "recurring", "recurring task source file")
-	flag.Parse()
-
-	// now := time.Now()
-	now := time.Date(2021, 8, 14, 18, 0, 0, 0, time.Local)
-	log.Printf("DEBUG MODE - USING FIXED DATE: %s", now)
+	args := cmdArgs{}
+	args.attachArgs()
 
 	taskChan := make(chan tasks.Task, 1000) // buffer size is large enough for a reasonable amount of tasks
 	done := make(chan struct{})
 
 	loader := tasks.NewLoader(taskChan, done)
-	loader.AddWeeklySource(opts.weeklySources...)
-	loader.AddMonthlySource(opts.monthlySources...)
-	loader.AddRecurringSource(opts.recurringSources...)
+	processor := tasks.NewProcessor(time.Now(), args.days, taskChan, done)
 
-	processor := tasks.NewProcessor(now, opts.maxDays, taskChan, done)
+	loader.AddWeeklySource(args.weeklySources...)
+	loader.AddMonthlySource(args.monthlySources...)
+	loader.AddRecurringSource(args.recurringSources...)
 
 	err := run(loader, processor)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	printTasks(processor.Tasks(), opts.maxDays)
+	printTasks(processor.Tasks(), args.days)
 }
 
 func run(loader *tasks.Loader, processor *tasks.Processor) error {
@@ -48,7 +39,7 @@ func run(loader *tasks.Loader, processor *tasks.Processor) error {
 	processor.Start()
 	defer processor.Wait()
 
-	// start loading
+	// start the loader and return any errors
 	return loader.Start()
 }
 
@@ -71,11 +62,19 @@ func printTasks(tsMap map[int][]tasks.Task, n int) {
 	}
 }
 
-type cmdOpts struct {
-	maxDays          int
+type cmdArgs struct {
+	days             int
 	weeklySources    stringSliceArg
 	monthlySources   stringSliceArg
 	recurringSources stringSliceArg
+}
+
+func (args *cmdArgs) attachArgs() {
+	flag.IntVar(&args.days, "days", 0, "days ahead to get tasks")
+	flag.Var(&args.weeklySources, "weekly", "weekly task source file")
+	flag.Var(&args.monthlySources, "monthly", "monthly task source file")
+	flag.Var(&args.recurringSources, "recurring", "recurring task source file")
+	flag.Parse()
 }
 
 type stringSliceArg []string
