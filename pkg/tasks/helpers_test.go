@@ -4,6 +4,8 @@ import (
 	"sort"
 	"testing"
 	"time"
+
+	"github.com/dkaslovsky/calendar-tasks/pkg/tasks/sources"
 )
 
 type testTask struct {
@@ -16,6 +18,13 @@ func (tt *testTask) DaysFrom(t time.Time) int { return tt.daysFrom }
 func (tt *testTask) String() string { return "" }
 
 func (tt *testTask) equal(other *testTask) bool { return tt.id == other.id }
+
+func newTestTask(rl *sources.RawLine) (Task, error) {
+	return &testTask{
+		id:       rl.Text,
+		daysFrom: 1,
+	}, nil
+}
 
 func assertEqualTestTaskMap(t *testing.T, expected, actual map[int][]Task) {
 	for day, etsks := range expected {

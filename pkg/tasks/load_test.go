@@ -5,24 +5,15 @@ import (
 	"io"
 	"strings"
 	"testing"
-
-	"github.com/dkaslovsky/calendar-tasks/pkg/tasks/sources"
 )
 
 func TestScan(t *testing.T) {
 	tests := map[string]struct {
 		r        io.ReadCloser
-		newTask  func(*sources.RawLine) (Task, error)
 		expected []Task
 	}{
 		"valid": {
 			r: io.NopCloser(strings.NewReader("Saturday: cook\nMonday: clean")),
-			newTask: func(rl *sources.RawLine) (Task, error) {
-				return &testTask{
-					id:       rl.Text,
-					daysFrom: 1,
-				}, nil
-			},
 			expected: []Task{
 				&testTask{
 					id:       "cook",
@@ -36,12 +27,6 @@ func TestScan(t *testing.T) {
 		},
 		"valid with newlines and spaces": {
 			r: io.NopCloser(strings.NewReader("     \nSaturday: cook\n  \nMonday: clean\n\n")),
-			newTask: func(rl *sources.RawLine) (Task, error) {
-				return &testTask{
-					id:       rl.Text,
-					daysFrom: 1,
-				}, nil
-			},
 			expected: []Task{
 				&testTask{
 					id:       "cook",
@@ -58,7 +43,7 @@ func TestScan(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-
+			// setup
 			resChan := make(chan Task, 100)
 			testDone := make(chan struct{})
 			result := []Task{}
@@ -69,13 +54,15 @@ func TestScan(t *testing.T) {
 				testDone <- struct{}{}
 			}()
 
-			err := scan(context.Background(), test.r, test.newTask, resChan)
+			err := scan(context.Background(), test.r, newTestTask, resChan)
+
+			// shutdown
+			close(resChan)
+			<-testDone
+
 			if err != nil {
 				t.Fatalf("unexpected non-nil error: %v", err)
 			}
-
-			close(resChan)
-			<-testDone
 			assertEqualTestTaskSlice(t, test.expected, result)
 		})
 	}
@@ -83,33 +70,20 @@ func TestScan(t *testing.T) {
 
 func TestScanError(t *testing.T) {
 	tests := map[string]struct {
-		r       io.ReadCloser
-		newTask func(*sources.RawLine) (Task, error)
+		r io.ReadCloser
 	}{
 		"empty": {
 			r: io.NopCloser(strings.NewReader("")),
-			newTask: func(rl *sources.RawLine) (Task, error) {
-				return &testTask{
-					id:       rl.Text,
-					daysFrom: 1,
-				}, nil
-			},
 		},
 		"empty with newlines and spaces": {
 			r: io.NopCloser(strings.NewReader("\n  \n\n  ")),
-			newTask: func(rl *sources.RawLine) (Task, error) {
-				return &testTask{
-					id:       rl.Text,
-					daysFrom: 1,
-				}, nil
-			},
 		},
 	}
 
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-
+			// setup
 			resChan := make(chan Task, 100)
 			testDone := make(chan struct{})
 			result := []Task{}
@@ -120,13 +94,15 @@ func TestScanError(t *testing.T) {
 				testDone <- struct{}{}
 			}()
 
-			err := scan(context.Background(), test.r, test.newTask, resChan)
+			err := scan(context.Background(), test.r, newTestTask, resChan)
+
+			// shutdown
+			close(resChan)
+			<-testDone
+
 			if err == nil {
 				t.Fatal("unexpected nil error")
 			}
-
-			close(resChan)
-			<-testDone
 		})
 	}
 }
