@@ -21,7 +21,7 @@ type Loader struct {
 
 	weekly    []string
 	monthly   []string
-	recurring []string
+	multiDate []string
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -38,7 +38,7 @@ func NewLoader(ch chan Task, done chan struct{}) *Loader {
 
 		weekly:    []string{},
 		monthly:   []string{},
-		recurring: []string{},
+		multiDate: []string{},
 
 		ctx:    ctx,
 		cancel: cancel,
@@ -56,9 +56,9 @@ func (l *Loader) AddMonthlySource(s ...string) {
 	l.monthly = append(l.monthly, s...)
 }
 
-// AddRecurringSource adds the name of a source file from which recurring tasks are loaded
-func (l *Loader) AddRecurringSource(s ...string) {
-	l.recurring = append(l.recurring, s...)
+// AddMultiDateSource adds the name of a source file from which multiDate tasks are loaded
+func (l *Loader) AddMultiDateSource(s ...string) {
+	l.multiDate = append(l.multiDate, s...)
 }
 
 // Start launches the goroutines that load each task type
@@ -67,7 +67,7 @@ func (l *Loader) Start() error {
 		l.done <- struct{}{}
 	}()
 
-	// start one worker for each type of task (weekly, monthly, recurring)
+	// start one worker for each type of task (weekly, monthly, multiDate)
 	weeklyCh := make(chan io.ReadCloser, len(l.weekly))
 	l.eg.Go(func() error {
 		return l.scan(weeklyCh, newWeeklyTask)
@@ -76,9 +76,9 @@ func (l *Loader) Start() error {
 	l.eg.Go(func() error {
 		return l.scan(monthlyCh, newMonthlyTask)
 	})
-	recurringCh := make(chan io.ReadCloser, len(l.recurring))
+	multiDateCh := make(chan io.ReadCloser, len(l.multiDate))
 	l.eg.Go(func() error {
-		return l.scan(recurringCh, newRecurringTask)
+		return l.scan(multiDateCh, newMultiDateTask)
 	})
 
 	// process each weekly task file
@@ -99,19 +99,19 @@ func (l *Loader) Start() error {
 		}
 		monthlyCh <- f
 	}
-	// process each recurring task file
-	for _, fp := range l.recurring {
+	// process each multiDate task file
+	for _, fp := range l.multiDate {
 		f, err := os.Open(filepath.Clean(fp))
 		if err != nil {
 			l.cancel()
 			return err
 		}
-		recurringCh <- f
+		multiDateCh <- f
 	}
 
 	close(weeklyCh)
 	close(monthlyCh)
-	close(recurringCh)
+	close(multiDateCh)
 	return l.eg.Wait()
 }
 
@@ -172,6 +172,6 @@ func newMonthlyTask(r *sources.RawLine) (Task, error) {
 	return sources.NewMonthly(r)
 }
 
-func newRecurringTask(r *sources.RawLine) (Task, error) {
-	return sources.NewRecurring(r)
+func newMultiDateTask(r *sources.RawLine) (Task, error) {
+	return sources.NewMultiDate(r)
 }

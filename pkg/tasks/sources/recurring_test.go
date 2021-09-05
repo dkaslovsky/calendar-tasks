@@ -29,14 +29,14 @@ func assertEqualDateSlice(t *testing.T, expected, actual []*date) {
 	}
 }
 
-func TestRecurringDaysFrom(t *testing.T) {
+func TestMultiDateDaysFrom(t *testing.T) {
 	tests := map[string]struct {
-		r        *Recurring
+		r        *MultiDate
 		now      time.Time
 		expected int
 	}{
 		"same day with single date": {
-			r: &Recurring{
+			r: &MultiDate{
 				dates: []*date{
 					{
 						month: time.August,
@@ -48,7 +48,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 0,
 		},
 		"same day with multiple dates": {
-			r: &Recurring{
+			r: &MultiDate{
 				dates: []*date{
 					{
 						month: time.August,
@@ -64,7 +64,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 0,
 		},
 		"next day with single date": {
-			r: &Recurring{
+			r: &MultiDate{
 				dates: []*date{
 					{
 						month: time.August,
@@ -76,7 +76,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 1,
 		},
 		"next day with multiple dates": {
-			r: &Recurring{
+			r: &MultiDate{
 				dates: []*date{
 					{
 						month: time.August,
@@ -92,7 +92,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 1,
 		},
 		"previous day": {
-			r: &Recurring{
+			r: &MultiDate{
 				dates: []*date{
 					{
 						month: time.August,
@@ -104,7 +104,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 364,
 		},
 		"previous day including leap year starting past February": {
-			r: &Recurring{
+			r: &MultiDate{
 				dates: []*date{
 					{
 						month: time.August,
@@ -116,7 +116,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 365,
 		},
 		"previous day including leap year starting before February": {
-			r: &Recurring{
+			r: &MultiDate{
 				dates: []*date{
 					{
 						month: time.January,
@@ -128,7 +128,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 365,
 		},
 		"previous day including leap year starting in February": {
-			r: &Recurring{
+			r: &MultiDate{
 				dates: []*date{
 					{
 						month: time.February,
@@ -140,7 +140,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 365,
 		},
 		"previous day including leap year starting on February 28": {
-			r: &Recurring{
+			r: &MultiDate{
 				dates: []*date{
 					{
 						month: time.February,
@@ -152,7 +152,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 365,
 		},
 		"previous day including leap year starting on February 29": {
-			r: &Recurring{
+			r: &MultiDate{
 				dates: []*date{
 					{
 						month: time.February,
@@ -164,7 +164,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 365,
 		},
 		"next month single date": {
-			r: &Recurring{
+			r: &MultiDate{
 				dates: []*date{
 					{
 						month: time.September,
@@ -176,7 +176,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 31,
 		},
 		"next month multiple dates": {
-			r: &Recurring{
+			r: &MultiDate{
 				dates: []*date{
 					{
 						month: time.September,
@@ -192,7 +192,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 31,
 		},
 		"within 24 hours": {
-			r: &Recurring{
+			r: &MultiDate{
 				dates: []*date{
 					{
 						month: time.August,
@@ -204,7 +204,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 1,
 		},
 		"one second away from today": {
-			r: &Recurring{
+			r: &MultiDate{
 				dates: []*date{
 					{
 						month: time.August,
@@ -216,7 +216,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 1,
 		},
 		"exactly same time": {
-			r: &Recurring{
+			r: &MultiDate{
 				dates: []*date{
 					{
 						month: time.August,
@@ -240,7 +240,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 	}
 }
 
-func TestNewRecurring(t *testing.T) {
+func TestNewMultiDate(t *testing.T) {
 	tests := map[string]struct {
 		raw           *RawLine
 		expectedDates []*date
@@ -302,7 +302,7 @@ func TestNewRecurring(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			result, err := NewRecurring(test.raw)
+			result, err := NewMultiDate(test.raw)
 			if err != nil {
 				t.Fatalf("unexpected non-nil error: %v", err)
 			}
@@ -315,7 +315,7 @@ func TestNewRecurring(t *testing.T) {
 
 }
 
-func TestNewRecurringError(t *testing.T) {
+func TestNewMultiDateError(t *testing.T) {
 	tests := map[string]struct {
 		raw *RawLine
 	}{
@@ -352,7 +352,7 @@ func TestNewRecurringError(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			_, err := NewRecurring(test.raw)
+			_, err := NewMultiDate(test.raw)
 			if err == nil {
 				t.Fatal("unexpected nil error")
 			}

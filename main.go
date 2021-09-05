@@ -28,7 +28,7 @@ func main() {
 
 	loader.AddWeeklySource(args.weeklySources...)
 	loader.AddMonthlySource(args.monthlySources...)
-	loader.AddRecurringSource(args.recurringSources...)
+	loader.AddMultiDateSource(args.multiDateSources...)
 
 	err := run(loader, processor)
 	if err != nil {
@@ -71,14 +71,14 @@ type cmdArgs struct {
 	days             int
 	weeklySources    stringSliceArg
 	monthlySources   stringSliceArg
-	recurringSources stringSliceArg
+	multiDateSources stringSliceArg
 }
 
 func (args *cmdArgs) attachArgs() {
 	flag.IntVar(&args.days, "days", 0, "days ahead to get tasks")
 	flag.Var(&args.weeklySources, "weekly", "weekly task source file")
 	flag.Var(&args.monthlySources, "monthly", "monthly task source file")
-	flag.Var(&args.recurringSources, "recurring", "recurring task source file")
+	flag.Var(&args.multiDateSources, "multi", "multiDate task source file")
 	flag.Parse()
 }
 
