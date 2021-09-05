@@ -8,29 +8,32 @@ import (
 	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
 )
 
-type weekly struct {
+// Weekly represents a weekly task
+type Weekly struct {
 	day  time.Weekday
 	text string
 }
 
-func NewWeekly(raw *RawLine) (*weekly, error) {
+// NewWeekly constructs a Weekly
+func NewWeekly(raw *RawLine) (*Weekly, error) {
 	day, err := calendar.ParseWeekday(raw.Date)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse date: %v", err)
 	}
 
-	w := &weekly{
+	w := &Weekly{
 		day:  day,
 		text: raw.Text,
 	}
 	return w, nil
 }
 
-func (w *weekly) DaysFrom(t time.Time) int {
+// DaysFrom calculates the number of days until a task's date
+func (w *Weekly) DaysFrom(t time.Time) int {
 	return calendar.DaysBetweenWeekdays(t.Weekday(), w.day)
 }
 
-func (w *weekly) String() string {
+func (w *Weekly) String() string {
 	s, _ := json.MarshalIndent(map[string]string{
 		"Day":  w.day.String(),
 		"Text": w.text,

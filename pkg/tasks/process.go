@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// Processor groups and filters tasks
 type Processor struct {
 	now     time.Time
 	maxDays int
@@ -17,6 +18,7 @@ type Processor struct {
 	tasks map[int][]Task
 }
 
+// NewProcessor constructs a Processor
 func NewProcessor(now time.Time, maxDays int, in <-chan Task, done <-chan struct{}) *Processor {
 	return &Processor{
 		now:     now,
@@ -31,6 +33,7 @@ func NewProcessor(now time.Time, maxDays int, in <-chan Task, done <-chan struct
 	}
 }
 
+// Start launches the Processor goroutine
 func (p *Processor) Start() {
 	p.wg.Add(1)
 	go func() {
@@ -47,10 +50,12 @@ func (p *Processor) Start() {
 	}()
 }
 
+// Wait waits for the Processor goroutine to finish
 func (p *Processor) Wait() {
 	p.wg.Wait()
 }
 
+// Tasks returnns processed tasks
 func (p *Processor) Tasks() map[int][]Task {
 	return p.tasks
 }

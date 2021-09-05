@@ -7,27 +7,27 @@ import (
 
 func TestWeeklyDaysFrom(t *testing.T) {
 	tests := map[string]struct {
-		w        *weekly
+		w        *Weekly
 		now      time.Time
 		expected int
 	}{
 		"same day": {
-			w:        &weekly{day: time.Friday},
+			w:        &Weekly{day: time.Friday},
 			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
 			expected: 0,
 		},
 		"next day": {
-			w:        &weekly{day: time.Saturday},
+			w:        &Weekly{day: time.Saturday},
 			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
 			expected: 1,
 		},
 		"five days from now": {
-			w:        &weekly{day: time.Wednesday},
+			w:        &Weekly{day: time.Wednesday},
 			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
 			expected: 5,
 		},
 		"previous day": {
-			w:        &weekly{day: time.Thursday},
+			w:        &Weekly{day: time.Thursday},
 			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
 			expected: 6,
 		},

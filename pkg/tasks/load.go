@@ -14,6 +14,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// Loader loads raw tasks to be sent for processing
 type Loader struct {
 	ch   chan Task
 	done chan struct{}
@@ -27,6 +28,7 @@ type Loader struct {
 	eg     *errgroup.Group
 }
 
+// NewLoader constructs a Loader
 func NewLoader(ch chan Task, done chan struct{}) *Loader {
 	ctx, cancel := context.WithCancel(context.Background())
 	eg, ctx := errgroup.WithContext(ctx)
@@ -44,18 +46,22 @@ func NewLoader(ch chan Task, done chan struct{}) *Loader {
 	}
 }
 
+// AddWeeklySource adds the name of a source file from which weekly tasks are loaded
 func (l *Loader) AddWeeklySource(s ...string) {
 	l.weekly = append(l.weekly, s...)
 }
 
+// AddMonthlySource adds the name of a source file from which monthly tasks are loaded
 func (l *Loader) AddMonthlySource(s ...string) {
 	l.monthly = append(l.monthly, s...)
 }
 
+// AddRecurringSource adds the name of a source file from which recurring tasks are loaded
 func (l *Loader) AddRecurringSource(s ...string) {
 	l.recurring = append(l.recurring, s...)
 }
 
+// Start launches the goroutines that load each task type
 func (l *Loader) Start() error {
 	defer func() {
 		l.done <- struct{}{}
@@ -109,6 +115,7 @@ func (l *Loader) Start() error {
 	return l.eg.Wait()
 }
 
+// scan is a worker that loads the tasks it receives on a channel
 func (l *Loader) scan(rcs <-chan io.ReadCloser, newTask func(*sources.RawLine) (Task, error)) error {
 	for r := range rcs {
 		err := scan(l.ctx, r, newTask, l.ch)
@@ -120,7 +127,7 @@ func (l *Loader) scan(rcs <-chan io.ReadCloser, newTask func(*sources.RawLine) (
 }
 
 func scan(ctx context.Context, r io.ReadCloser, newTask func(*sources.RawLine) (Task, error), taskCh chan Task) error {
-	defer r.Close()
+	defer r.Close() //nolint
 	nTasks := 0
 
 	scanner := bufio.NewScanner(r)

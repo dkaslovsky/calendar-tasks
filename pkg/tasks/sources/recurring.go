@@ -18,30 +18,32 @@ type date struct {
 	day   int
 }
 
-type recurring struct {
+// Recurring represents a recurring task, defined as having multiple dates
+type Recurring struct {
 	dates []*date
 	text  string
 }
 
-func NewRecurring(raw *RawLine) (*recurring, error) {
+// NewRecurring constructs a Recurring
+func NewRecurring(raw *RawLine) (*Recurring, error) {
 	dateParts := strings.SplitN(raw.Date, " ", 2)
 	if len(dateParts) != 2 {
-		return &recurring{}, fmt.Errorf("invalid recurring date [%s]", raw.Date)
+		return &Recurring{}, fmt.Errorf("invalid recurring date [%s]", raw.Date)
 	}
 	day, err := strconv.ParseInt(dateParts[1], 10, 0)
 	if err != nil {
-		return &recurring{}, fmt.Errorf("could not parse date: %v", err)
+		return &Recurring{}, fmt.Errorf("could not parse date: %v", err)
 	}
 	months := strings.Split(dateParts[0], monthDelim)
 	if len(months) == 0 || len(months) > 12 {
-		return &recurring{}, fmt.Errorf("invalid recurring date [%s]", raw.Date)
+		return &Recurring{}, fmt.Errorf("invalid recurring date [%s]", raw.Date)
 	}
 
 	dates := []*date{}
 	for _, m := range months {
 		month, err := calendar.ParseMonth(m)
 		if err != nil {
-			return &recurring{}, fmt.Errorf("invalid recurring date [%s]", raw.Date)
+			return &Recurring{}, fmt.Errorf("invalid recurring date [%s]", raw.Date)
 		}
 		dates = append(dates, &date{
 			month: month,
@@ -49,14 +51,15 @@ func NewRecurring(raw *RawLine) (*recurring, error) {
 		})
 	}
 
-	m := &recurring{
+	m := &Recurring{
 		dates: dates,
 		text:  raw.Text,
 	}
 	return m, nil
 }
 
-func (r *recurring) DaysFrom(t time.Time) int {
+// DaysFrom calculates the number of days until a task's date
+func (r *Recurring) DaysFrom(t time.Time) int {
 	nowYear := t.Year()
 	nowMonth := t.Month()
 	nowLoc := t.Location()
@@ -82,7 +85,7 @@ func (r *recurring) DaysFrom(t time.Time) int {
 	return int(math.Ceil(curDiff))
 }
 
-func (r *recurring) String() string {
+func (r *Recurring) String() string {
 	dates := []string{}
 	for _, date := range r.dates {
 		dates = append(dates, fmt.Sprintf("%s %d", date.month, date.day))

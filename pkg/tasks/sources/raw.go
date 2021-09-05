@@ -7,11 +7,13 @@ import (
 
 const delim = ":"
 
+// RawLine represents a line from an input source file
 type RawLine struct {
 	Date string
 	Text string
 }
 
+// LoadLine loads a line from an input source file into a RawLine
 func LoadLine(line string) (*RawLine, error) {
 	parts := strings.SplitN(line, delim, 2)
 	if len(parts) != 2 {

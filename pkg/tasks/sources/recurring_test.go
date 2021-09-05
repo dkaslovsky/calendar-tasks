@@ -31,12 +31,12 @@ func assertEqualDateSlice(t *testing.T, expected, actual []*date) {
 
 func TestRecurringDaysFrom(t *testing.T) {
 	tests := map[string]struct {
-		r        *recurring
+		r        *Recurring
 		now      time.Time
 		expected int
 	}{
 		"same day with single date": {
-			r: &recurring{
+			r: &Recurring{
 				dates: []*date{
 					{
 						month: time.August,
@@ -48,7 +48,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 0,
 		},
 		"same day with multiple dates": {
-			r: &recurring{
+			r: &Recurring{
 				dates: []*date{
 					{
 						month: time.August,
@@ -64,7 +64,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 0,
 		},
 		"next day with single date": {
-			r: &recurring{
+			r: &Recurring{
 				dates: []*date{
 					{
 						month: time.August,
@@ -76,7 +76,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 1,
 		},
 		"next day with multiple dates": {
-			r: &recurring{
+			r: &Recurring{
 				dates: []*date{
 					{
 						month: time.August,
@@ -92,7 +92,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 1,
 		},
 		"previous day": {
-			r: &recurring{
+			r: &Recurring{
 				dates: []*date{
 					{
 						month: time.August,
@@ -104,7 +104,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 364,
 		},
 		"previous day including leap year starting past February": {
-			r: &recurring{
+			r: &Recurring{
 				dates: []*date{
 					{
 						month: time.August,
@@ -116,7 +116,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 365,
 		},
 		"previous day including leap year starting before February": {
-			r: &recurring{
+			r: &Recurring{
 				dates: []*date{
 					{
 						month: time.January,
@@ -128,7 +128,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 365,
 		},
 		"previous day including leap year starting in February": {
-			r: &recurring{
+			r: &Recurring{
 				dates: []*date{
 					{
 						month: time.February,
@@ -140,7 +140,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 365,
 		},
 		"previous day including leap year starting on February 28": {
-			r: &recurring{
+			r: &Recurring{
 				dates: []*date{
 					{
 						month: time.February,
@@ -152,7 +152,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 365,
 		},
 		"previous day including leap year starting on February 29": {
-			r: &recurring{
+			r: &Recurring{
 				dates: []*date{
 					{
 						month: time.February,
@@ -164,7 +164,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 365,
 		},
 		"next month single date": {
-			r: &recurring{
+			r: &Recurring{
 				dates: []*date{
 					{
 						month: time.September,
@@ -176,7 +176,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 31,
 		},
 		"next month multiple dates": {
-			r: &recurring{
+			r: &Recurring{
 				dates: []*date{
 					{
 						month: time.September,
@@ -192,7 +192,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 31,
 		},
 		"within 24 hours": {
-			r: &recurring{
+			r: &Recurring{
 				dates: []*date{
 					{
 						month: time.August,
@@ -204,7 +204,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 1,
 		},
 		"one second away from today": {
-			r: &recurring{
+			r: &Recurring{
 				dates: []*date{
 					{
 						month: time.August,
@@ -216,7 +216,7 @@ func TestRecurringDaysFrom(t *testing.T) {
 			expected: 1,
 		},
 		"exactly same time": {
-			r: &recurring{
+			r: &Recurring{
 				dates: []*date{
 					{
 						month: time.August,
