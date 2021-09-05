@@ -57,8 +57,8 @@ func (p *Processor) Wait() {
 
 // GetTasks returns the tasks for a specified day
 func (p *Processor) GetTasks(day int) ([]Task, bool) {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+	p.lock.RLock()
+	defer p.lock.RUnlock()
 
 	if tsks, ok := p.tasks[day]; ok {
 		return tsks, true
