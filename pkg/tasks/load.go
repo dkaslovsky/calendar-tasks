@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/dkaslovsky/calendar-tasks/pkg/tasks/sources"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -63,15 +64,15 @@ func (l *Loader) Start() error {
 	// start one worker for each type of task (weekly, monthly, recurring)
 	weeklyCh := make(chan io.ReadCloser, len(l.weekly))
 	l.eg.Go(func() error {
-		return l.scan(weeklyCh, newWeekly)
+		return l.scan(weeklyCh, newWeeklyTask)
 	})
 	monthlyCh := make(chan io.ReadCloser, len(l.monthly))
 	l.eg.Go(func() error {
-		return l.scan(monthlyCh, newMonthly)
+		return l.scan(monthlyCh, newMonthlyTask)
 	})
 	recurringCh := make(chan io.ReadCloser, len(l.recurring))
 	l.eg.Go(func() error {
-		return l.scan(recurringCh, newRecurring)
+		return l.scan(recurringCh, newRecurringTask)
 	})
 
 	// process each weekly task file
@@ -108,7 +109,7 @@ func (l *Loader) Start() error {
 	return l.eg.Wait()
 }
 
-func (l *Loader) scan(rcs <-chan io.ReadCloser, newTask func(*rawLine) (Task, error)) error {
+func (l *Loader) scan(rcs <-chan io.ReadCloser, newTask func(*sources.RawLine) (Task, error)) error {
 	for r := range rcs {
 		err := scan(l.ctx, r, newTask, l.ch)
 		if err != nil {
@@ -118,7 +119,7 @@ func (l *Loader) scan(rcs <-chan io.ReadCloser, newTask func(*rawLine) (Task, er
 	return nil
 }
 
-func scan(ctx context.Context, r io.ReadCloser, newTask func(*rawLine) (Task, error), taskCh chan Task) error {
+func scan(ctx context.Context, r io.ReadCloser, newTask func(*sources.RawLine) (Task, error), taskCh chan Task) error {
 	defer r.Close()
 	nTasks := 0
 
@@ -134,7 +135,7 @@ func scan(ctx context.Context, r io.ReadCloser, newTask func(*rawLine) (Task, er
 		if strings.ReplaceAll(line, " ", "") == "" {
 			continue
 		}
-		rl, err := loadLine(line)
+		rl, err := sources.LoadLine(line)
 		if err != nil {
 			return fmt.Errorf("failed to load line: %v", err)
 		}
@@ -156,26 +157,14 @@ func scan(ctx context.Context, r io.ReadCloser, newTask func(*rawLine) (Task, er
 	return nil
 }
 
-const delim = ":"
-
-type rawLine struct {
-	date string
-	text string
+func newWeeklyTask(r *sources.RawLine) (Task, error) {
+	return sources.NewWeekly(r)
 }
 
-func loadLine(line string) (*rawLine, error) {
-	parts := strings.SplitN(line, delim, 2)
-	if len(parts) != 2 {
-		return &rawLine{}, fmt.Errorf("invalid line [%s]", line)
-	}
-
-	r := &rawLine{
-		date: parts[0],
-		text: cleanText(parts[1]),
-	}
-	return r, nil
+func newMonthlyTask(r *sources.RawLine) (Task, error) {
+	return sources.NewMonthly(r)
 }
 
-func cleanText(s string) string {
-	return strings.TrimLeft(s, " ")
+func newRecurringTask(r *sources.RawLine) (Task, error) {
+	return sources.NewRecurring(r)
 }

@@ -1,4 +1,4 @@
-package tasks
+package sources
 
 import (
 	"sort"
@@ -242,49 +242,49 @@ func TestRecurringDaysFrom(t *testing.T) {
 
 func TestNewRecurring(t *testing.T) {
 	tests := map[string]struct {
-		raw           *rawLine
+		raw           *RawLine
 		expectedDates []*date
 		expectedText  string
 		shouldErr     bool
 	}{
 		"empty": {
-			raw:       &rawLine{},
+			raw:       &RawLine{},
 			shouldErr: true,
 		},
 		"invalid month": {
-			raw: &rawLine{
-				date: "xxx",
+			raw: &RawLine{
+				Date: "xxx",
 			},
 			shouldErr: true,
 		},
 		"invalid second month": {
-			raw: &rawLine{
-				date: "april/xxx",
+			raw: &RawLine{
+				Date: "april/xxx",
 			},
 			shouldErr: true,
 		},
 		"empty second month": {
-			raw: &rawLine{
-				date: "april/",
+			raw: &RawLine{
+				Date: "april/",
 			},
 			shouldErr: true,
 		},
 		"month without day": {
-			raw: &rawLine{
-				date: "april/may",
+			raw: &RawLine{
+				Date: "april/may",
 			},
 			shouldErr: true,
 		},
 		"month with invalid day": {
-			raw: &rawLine{
-				date: "april/may xxx",
+			raw: &RawLine{
+				Date: "april/may xxx",
 			},
 			shouldErr: true,
 		},
 		"single month": {
-			raw: &rawLine{
-				date: "april 1",
-				text: "foo bar woo",
+			raw: &RawLine{
+				Date: "april 1",
+				Text: "foo bar woo",
 			},
 			expectedDates: []*date{
 				{
@@ -296,9 +296,9 @@ func TestNewRecurring(t *testing.T) {
 			shouldErr:    false,
 		},
 		"multiple months": {
-			raw: &rawLine{
-				date: "april/may 12",
-				text: "foo bar woo",
+			raw: &RawLine{
+				Date: "april/may 12",
+				Text: "foo bar woo",
 			},
 			expectedDates: []*date{
 				{
@@ -314,9 +314,9 @@ func TestNewRecurring(t *testing.T) {
 			shouldErr:    false,
 		},
 		"multiple months unordered": {
-			raw: &rawLine{
-				date: "april/may/january 15",
-				text: "foo bar woo",
+			raw: &RawLine{
+				Date: "april/may/january 15",
+				Text: "foo bar woo",
 			},
 			expectedDates: []*date{
 				{
@@ -340,14 +340,10 @@ func TestNewRecurring(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			res, err := newRecurring(test.raw)
+			result, err := NewRecurring(test.raw)
 			assertShouldError(t, test.shouldErr, err)
 			if test.shouldErr {
 				return
-			}
-			result, ok := res.(*recurring)
-			if !ok {
-				t.Fatal("type assertion failed on result")
 			}
 			if result.text != test.expectedText {
 				t.Fatalf("result text '%s' not equal to expected text '%s'", result.text, test.expectedText)

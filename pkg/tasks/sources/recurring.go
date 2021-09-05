@@ -1,4 +1,4 @@
-package tasks
+package sources
 
 import (
 	"encoding/json"
@@ -23,10 +23,10 @@ type recurring struct {
 	text  string
 }
 
-func newRecurring(raw *rawLine) (Task, error) {
-	dateParts := strings.SplitN(raw.date, " ", 2)
+func NewRecurring(raw *RawLine) (*recurring, error) {
+	dateParts := strings.SplitN(raw.Date, " ", 2)
 	if len(dateParts) != 2 {
-		return &recurring{}, fmt.Errorf("invalid recurring date [%s]", raw.date)
+		return &recurring{}, fmt.Errorf("invalid recurring date [%s]", raw.Date)
 	}
 	day, err := strconv.ParseInt(dateParts[1], 10, 0)
 	if err != nil {
@@ -34,14 +34,14 @@ func newRecurring(raw *rawLine) (Task, error) {
 	}
 	months := strings.Split(dateParts[0], monthDelim)
 	if len(months) == 0 || len(months) > 12 {
-		return &recurring{}, fmt.Errorf("invalid recurring date [%s]", raw.date)
+		return &recurring{}, fmt.Errorf("invalid recurring date [%s]", raw.Date)
 	}
 
 	dates := []*date{}
 	for _, m := range months {
 		month, err := calendar.ParseMonth(m)
 		if err != nil {
-			return &recurring{}, fmt.Errorf("invalid recurring date [%s]", raw.date)
+			return &recurring{}, fmt.Errorf("invalid recurring date [%s]", raw.Date)
 		}
 		dates = append(dates, &date{
 			month: month,
@@ -51,7 +51,7 @@ func newRecurring(raw *rawLine) (Task, error) {
 
 	m := &recurring{
 		dates: dates,
-		text:  raw.text,
+		text:  raw.Text,
 	}
 	return m, nil
 }

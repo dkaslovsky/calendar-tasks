@@ -1,4 +1,4 @@
-package tasks
+package sources
 
 import (
 	"encoding/json"
@@ -14,15 +14,15 @@ type monthly struct {
 	text string
 }
 
-func newMonthly(raw *rawLine) (Task, error) {
-	day, err := strconv.ParseInt(raw.date, 10, 0)
+func NewMonthly(raw *RawLine) (*monthly, error) {
+	day, err := strconv.ParseInt(raw.Date, 10, 0)
 	if err != nil {
 		return &monthly{}, fmt.Errorf("could not parse date: %v", err)
 	}
 
 	m := &monthly{
 		day:  int(day),
-		text: raw.text,
+		text: raw.Text,
 	}
 	return m, nil
 }

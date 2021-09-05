@@ -1,4 +1,4 @@
-package tasks
+package sources
 
 import (
 	"testing"
@@ -46,25 +46,25 @@ func TestWeeklyDaysFrom(t *testing.T) {
 
 func TestNewWeekly(t *testing.T) {
 	tests := map[string]struct {
-		raw          *rawLine
+		raw          *RawLine
 		expectedDay  time.Weekday
 		expectedText string
 		shouldErr    bool
 	}{
 		"empty": {
-			raw:       &rawLine{},
+			raw:       &RawLine{},
 			shouldErr: true,
 		},
 		"invalid date": {
-			raw: &rawLine{
-				date: "funday",
+			raw: &RawLine{
+				Date: "funday",
 			},
 			shouldErr: true,
 		},
 		"non-empty": {
-			raw: &rawLine{
-				date: "Monday",
-				text: "foo bar woo",
+			raw: &RawLine{
+				Date: "Monday",
+				Text: "foo bar woo",
 			},
 			expectedDay:  time.Monday,
 			expectedText: "foo bar woo",
@@ -75,14 +75,10 @@ func TestNewWeekly(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			res, err := newWeekly(test.raw)
+			result, err := NewWeekly(test.raw)
 			assertShouldError(t, test.shouldErr, err)
 			if test.shouldErr {
 				return
-			}
-			result, ok := res.(*weekly)
-			if !ok {
-				t.Fatal("type assertion failed on result")
 			}
 			if result.day != test.expectedDay {
 				t.Fatalf("result days %d not equal to expected days %d", result.day, test.expectedDay)
@@ -93,4 +89,16 @@ func TestNewWeekly(t *testing.T) {
 		})
 	}
 
+}
+
+func assertShouldError(t *testing.T, shouldErr bool, err error) {
+	if shouldErr {
+		if err == nil {
+			t.Fatal("expected error but result err is nil")
+		}
+		return
+	}
+	if !shouldErr && err != nil {
+		t.Fatalf("expected nil error but result err is %v", err)
+	}
 }

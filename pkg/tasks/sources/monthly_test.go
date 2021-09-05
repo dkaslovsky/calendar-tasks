@@ -1,4 +1,4 @@
-package tasks
+package sources
 
 import (
 	"testing"
@@ -91,25 +91,25 @@ func TestMonthlyDaysFrom(t *testing.T) {
 
 func TestNewMonthly(t *testing.T) {
 	tests := map[string]struct {
-		raw          *rawLine
+		raw          *RawLine
 		expectedDay  int
 		expectedText string
 		shouldErr    bool
 	}{
 		"empty": {
-			raw:       &rawLine{},
+			raw:       &RawLine{},
 			shouldErr: true,
 		},
 		"invalid date": {
-			raw: &rawLine{
-				date: "not a number",
+			raw: &RawLine{
+				Date: "not a number",
 			},
 			shouldErr: true,
 		},
 		"non-empty": {
-			raw: &rawLine{
-				date: "12",
-				text: "foo bar woo",
+			raw: &RawLine{
+				Date: "12",
+				Text: "foo bar woo",
 			},
 			expectedDay:  12,
 			expectedText: "foo bar woo",
@@ -120,15 +120,10 @@ func TestNewMonthly(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			res, err := newMonthly(test.raw)
+			result, err := NewMonthly(test.raw)
 			assertShouldError(t, test.shouldErr, err)
 			if test.shouldErr {
 				return
-			}
-
-			result, ok := res.(*monthly)
-			if !ok {
-				t.Fatal("type assertion failed on result")
 			}
 			if result.day != test.expectedDay {
 				t.Fatalf("result days %d not equal to expected days %d", result.day, test.expectedDay)

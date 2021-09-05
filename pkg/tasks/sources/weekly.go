@@ -1,4 +1,4 @@
-package tasks
+package sources
 
 import (
 	"encoding/json"
@@ -13,15 +13,15 @@ type weekly struct {
 	text string
 }
 
-func newWeekly(raw *rawLine) (Task, error) {
-	day, err := calendar.ParseWeekday(raw.date)
+func NewWeekly(raw *RawLine) (*weekly, error) {
+	day, err := calendar.ParseWeekday(raw.Date)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse date: %v", err)
 	}
 
 	w := &weekly{
 		day:  day,
-		text: raw.text,
+		text: raw.Text,
 	}
 	return w, nil
 }
