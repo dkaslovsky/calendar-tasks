@@ -12,10 +12,7 @@ import (
 )
 
 func main() {
-
-	//now := time.Now()
-	now := time.Date(2021, 8, 14, 0, 0, 0, 0, time.Local)
-	fmt.Printf("\nDEBUG MODE - USING FIXED DATE %s\n", now)
+	date := fixDate(time.Now())
 
 	args := cmdArgs{}
 	args.attachArgs()
@@ -24,7 +21,7 @@ func main() {
 	done := make(chan struct{})
 
 	loader := tasks.NewLoader(taskChan, done)
-	processor := tasks.NewProcessor(now, args.days, taskChan, done)
+	processor := tasks.NewProcessor(date, args.days, taskChan, done)
 
 	loader.AddWeeklySource(args.weeklySources...)
 	loader.AddMonthlySource(args.monthlySources...)
@@ -35,7 +32,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	printTasks(processor, args.days, now)
+	printTasks(processor, args.days, date)
 }
 
 func run(loader *tasks.Loader, processor *tasks.Processor) error {
@@ -47,7 +44,7 @@ func run(loader *tasks.Loader, processor *tasks.Processor) error {
 	return loader.Start()
 }
 
-func printTasks(processor *tasks.Processor, numDays int, now time.Time) {
+func printTasks(processor *tasks.Processor, numDays int, startDate time.Time) {
 	for day := 0; day <= numDays; day++ {
 		tsks, ok := processor.GetTasks(day)
 		if !ok {
@@ -59,12 +56,19 @@ func printTasks(processor *tasks.Processor, numDays int, now time.Time) {
 			return strings.ToLower(tsks[i].String()) < strings.ToLower(tsks[j].String())
 		})
 
-		dayStr := now.AddDate(0, 0, day).Format("[Mon] Jan 2 2006")
-		fmt.Printf("\n%s\n", dayStr)
+		curDay := startDate.AddDate(0, 0, day)
+		fmt.Printf("\n%s\n", curDay.Format("[Mon] Jan 2 2006"))
 		for _, tsk := range tsks {
 			fmt.Printf("\t-%s\n", tsk)
 		}
 	}
+}
+
+// fixDate returns a time.Time object matching the year, month, day (and location) of the argument
+// and sets the hour to the middle of the day to avoid any boundary cases that can occur with
+// e.g., daylight savings
+func fixDate(now time.Time) time.Time {
+	return time.Date(now.Year(), now.Month(), now.Day(), 12, 0, 0, 0, now.Location())
 }
 
 type cmdArgs struct {
