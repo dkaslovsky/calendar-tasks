@@ -49,26 +49,14 @@ func TestNewWeekly(t *testing.T) {
 		raw          *RawLine
 		expectedDay  time.Weekday
 		expectedText string
-		shouldErr    bool
 	}{
-		"empty": {
-			raw:       &RawLine{},
-			shouldErr: true,
-		},
-		"invalid date": {
-			raw: &RawLine{
-				Date: "funday",
-			},
-			shouldErr: true,
-		},
-		"non-empty": {
+		"valid": {
 			raw: &RawLine{
 				Date: "Monday",
 				Text: "foo bar woo",
 			},
 			expectedDay:  time.Monday,
 			expectedText: "foo bar woo",
-			shouldErr:    false,
 		},
 	}
 
@@ -76,9 +64,8 @@ func TestNewWeekly(t *testing.T) {
 		test := test
 		t.Run(name, func(t *testing.T) {
 			result, err := NewWeekly(test.raw)
-			assertShouldError(t, test.shouldErr, err)
-			if test.shouldErr {
-				return
+			if err != nil {
+				t.Fatalf("unexpected non-nil error: %v", err)
 			}
 			if result.day != test.expectedDay {
 				t.Fatalf("result days %d not equal to expected days %d", result.day, test.expectedDay)
@@ -88,17 +75,29 @@ func TestNewWeekly(t *testing.T) {
 			}
 		})
 	}
-
 }
 
-func assertShouldError(t *testing.T, shouldErr bool, err error) {
-	if shouldErr {
-		if err == nil {
-			t.Fatal("expected error but result err is nil")
-		}
-		return
+func TestNewWeeklyError(t *testing.T) {
+	tests := map[string]struct {
+		raw *RawLine
+	}{
+		"empty": {
+			raw: &RawLine{},
+		},
+		"invalid date": {
+			raw: &RawLine{
+				Date: "funday",
+			},
+		},
 	}
-	if !shouldErr && err != nil {
-		t.Fatalf("expected nil error but result err is %v", err)
+
+	for name, test := range tests {
+		test := test
+		t.Run(name, func(t *testing.T) {
+			_, err := NewWeekly(test.raw)
+			if err == nil {
+				t.Fatal("unexpected nil error")
+			}
+		})
 	}
 }

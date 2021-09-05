@@ -62,15 +62,3 @@ func assertEqualTestTaskSlice(t *testing.T, expected, actual []Task) {
 		}
 	}
 }
-
-func assertShouldError(t *testing.T, shouldErr bool, err error) {
-	if shouldErr {
-		if err == nil {
-			t.Fatal("expected error but result err is nil")
-		}
-		return
-	}
-	if !shouldErr && err != nil {
-		t.Fatalf("expected nil error but result err is %v", err)
-	}
-}

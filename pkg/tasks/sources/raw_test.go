@@ -4,37 +4,15 @@ import "testing"
 
 func TestLoadLine(t *testing.T) {
 	tests := map[string]struct {
-		line      string
-		expected  RawLine
-		shouldErr bool
+		line     string
+		expected RawLine
 	}{
-		"empty": {
-			line:      "",
-			shouldErr: true,
-		},
-		"empty with spaces": {
-			line:      "    ",
-			shouldErr: true,
-		},
-		"no delimiter": {
-			line:      "foobar",
-			shouldErr: true,
-		},
-		"multiple delimiters": {
-			line: "foo:bar:baz",
-			expected: RawLine{
-				Date: "foo",
-				Text: "bar:baz",
-			},
-			shouldErr: false,
-		},
 		"valid": {
 			line: "foo:bar",
 			expected: RawLine{
 				Date: "foo",
 				Text: "bar",
 			},
-			shouldErr: false,
 		},
 		"valid with spaces": {
 			line: "foo:  bar",
@@ -42,7 +20,13 @@ func TestLoadLine(t *testing.T) {
 				Date: "foo",
 				Text: "bar",
 			},
-			shouldErr: false,
+		},
+		"multiple delimiters": {
+			line: "foo:bar:baz",
+			expected: RawLine{
+				Date: "foo",
+				Text: "bar:baz",
+			},
 		},
 	}
 
@@ -50,12 +34,37 @@ func TestLoadLine(t *testing.T) {
 		test := test
 		t.Run(name, func(t *testing.T) {
 			result, err := LoadLine(test.line)
-			assertShouldError(t, test.shouldErr, err)
-			if test.shouldErr {
-				return
+			if err != nil {
+				t.Fatalf("unexpected non-nil error: %v", err)
 			}
 			if result.Date != test.expected.Date || result.Text != test.expected.Text {
 				t.Fatalf("result %v does not equal expected %v", result, test.expected)
+			}
+		})
+	}
+}
+
+func TestLoadLineError(t *testing.T) {
+	tests := map[string]struct {
+		line string
+	}{
+		"empty": {
+			line: "",
+		},
+		"empty with spaces": {
+			line: "    ",
+		},
+		"no delimiter": {
+			line: "foobar",
+		},
+	}
+
+	for name, test := range tests {
+		test := test
+		t.Run(name, func(t *testing.T) {
+			_, err := LoadLine(test.line)
+			if err == nil {
+				t.Fatal("unexpected nil error")
 			}
 		})
 	}

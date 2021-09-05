@@ -94,26 +94,14 @@ func TestNewMonthly(t *testing.T) {
 		raw          *RawLine
 		expectedDay  int
 		expectedText string
-		shouldErr    bool
 	}{
-		"empty": {
-			raw:       &RawLine{},
-			shouldErr: true,
-		},
-		"invalid date": {
-			raw: &RawLine{
-				Date: "not a number",
-			},
-			shouldErr: true,
-		},
-		"non-empty": {
+		"valid": {
 			raw: &RawLine{
 				Date: "12",
 				Text: "foo bar woo",
 			},
 			expectedDay:  12,
 			expectedText: "foo bar woo",
-			shouldErr:    false,
 		},
 	}
 
@@ -121,9 +109,8 @@ func TestNewMonthly(t *testing.T) {
 		test := test
 		t.Run(name, func(t *testing.T) {
 			result, err := NewMonthly(test.raw)
-			assertShouldError(t, test.shouldErr, err)
-			if test.shouldErr {
-				return
+			if err != nil {
+				t.Fatalf("unexpected non-nil error: %v", err)
 			}
 			if result.day != test.expectedDay {
 				t.Fatalf("result days %d not equal to expected days %d", result.day, test.expectedDay)
@@ -133,5 +120,29 @@ func TestNewMonthly(t *testing.T) {
 			}
 		})
 	}
+}
 
+func TestNewMonthlyError(t *testing.T) {
+	tests := map[string]struct {
+		raw *RawLine
+	}{
+		"empty": {
+			raw: &RawLine{},
+		},
+		"invalid date": {
+			raw: &RawLine{
+				Date: "not a number",
+			},
+		},
+	}
+
+	for name, test := range tests {
+		test := test
+		t.Run(name, func(t *testing.T) {
+			_, err := NewMonthly(test.raw)
+			if err == nil {
+				t.Fatal("unexpected nil error")
+			}
+		})
+	}
 }

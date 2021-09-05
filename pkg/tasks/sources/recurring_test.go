@@ -245,42 +245,7 @@ func TestNewRecurring(t *testing.T) {
 		raw           *RawLine
 		expectedDates []*date
 		expectedText  string
-		shouldErr     bool
 	}{
-		"empty": {
-			raw:       &RawLine{},
-			shouldErr: true,
-		},
-		"invalid month": {
-			raw: &RawLine{
-				Date: "xxx",
-			},
-			shouldErr: true,
-		},
-		"invalid second month": {
-			raw: &RawLine{
-				Date: "april/xxx",
-			},
-			shouldErr: true,
-		},
-		"empty second month": {
-			raw: &RawLine{
-				Date: "april/",
-			},
-			shouldErr: true,
-		},
-		"month without day": {
-			raw: &RawLine{
-				Date: "april/may",
-			},
-			shouldErr: true,
-		},
-		"month with invalid day": {
-			raw: &RawLine{
-				Date: "april/may xxx",
-			},
-			shouldErr: true,
-		},
 		"single month": {
 			raw: &RawLine{
 				Date: "april 1",
@@ -293,7 +258,6 @@ func TestNewRecurring(t *testing.T) {
 				},
 			},
 			expectedText: "foo bar woo",
-			shouldErr:    false,
 		},
 		"multiple months": {
 			raw: &RawLine{
@@ -311,7 +275,6 @@ func TestNewRecurring(t *testing.T) {
 				},
 			},
 			expectedText: "foo bar woo",
-			shouldErr:    false,
 		},
 		"multiple months unordered": {
 			raw: &RawLine{
@@ -333,7 +296,6 @@ func TestNewRecurring(t *testing.T) {
 				},
 			},
 			expectedText: "foo bar woo",
-			shouldErr:    false,
 		},
 	}
 
@@ -341,14 +303,59 @@ func TestNewRecurring(t *testing.T) {
 		test := test
 		t.Run(name, func(t *testing.T) {
 			result, err := NewRecurring(test.raw)
-			assertShouldError(t, test.shouldErr, err)
-			if test.shouldErr {
-				return
+			if err != nil {
+				t.Fatalf("unexpected non-nil error: %v", err)
 			}
 			if result.text != test.expectedText {
 				t.Fatalf("result text '%s' not equal to expected text '%s'", result.text, test.expectedText)
 			}
 			assertEqualDateSlice(t, test.expectedDates, result.dates)
+		})
+	}
+
+}
+
+func TestNewRecurringError(t *testing.T) {
+	tests := map[string]struct {
+		raw *RawLine
+	}{
+		"empty": {
+			raw: &RawLine{},
+		},
+		"invalid month": {
+			raw: &RawLine{
+				Date: "xxx",
+			},
+		},
+		"invalid second month": {
+			raw: &RawLine{
+				Date: "april/xxx",
+			},
+		},
+		"empty second month": {
+			raw: &RawLine{
+				Date: "april/",
+			},
+		},
+		"month without day": {
+			raw: &RawLine{
+				Date: "april/may",
+			},
+		},
+		"month with invalid day": {
+			raw: &RawLine{
+				Date: "april/may xxx",
+			},
+		},
+	}
+
+	for name, test := range tests {
+		test := test
+		t.Run(name, func(t *testing.T) {
+			_, err := NewRecurring(test.raw)
+			if err == nil {
+				t.Fatal("unexpected nil error")
+			}
 		})
 	}
 
