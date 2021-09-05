@@ -28,11 +28,11 @@ type cmdArgs struct {
 
 func (args *cmdArgs) parseArgs(argsIn []string) error {
 	fs := flag.NewFlagSet("calendar-tasks", flag.ExitOnError)
-	fs.IntVar(&args.days, "days", 0, "days ahead to get tasks")
+	fs.IntVar(&args.days, "d", 0, "days ahead to get tasks")
 	fs.Var(&args.weeklySources, "weekly", "weekly task source file path")
 	fs.Var(&args.monthlySources, "monthly", "monthly task source file path")
 	fs.Var(&args.multiDateSources, "multi", "multiDate task source file path")
-	fs.BoolVar(&args.version, "version", false, "display version info")
+	fs.BoolVar(&args.version, "v", false, "display version info")
 
 	setUsage(fs)
 	return fs.Parse(argsIn)
@@ -44,6 +44,11 @@ func Run(argsIn []string) error {
 	err := setupArgs(args, argsIn)
 	if err != nil {
 		return err
+	}
+
+	if args.version {
+		printVersion()
+		return nil
 	}
 
 	date := fixDate(time.Now())
@@ -96,7 +101,7 @@ func printTasks(processor *tasks.Processor, numDays int, startDate time.Time) {
 		})
 
 		curDay := startDate.AddDate(0, 0, day)
-		curDayStr := fmt.Sprintf("\n%s", curDay.Format(printTimeFormat))
+		curDayStr := curDay.Format(printTimeFormat)
 		if day == 0 {
 			curDayStr += " (today)"
 		}
@@ -117,7 +122,6 @@ func setupArgs(args *cmdArgs, argsIn []string) error {
 		return err
 	}
 	if args.version {
-		printVersion()
 		return nil
 	}
 	if len(args.weeklySources)+len(args.monthlySources)+len(args.multiDateSources) == 0 {
