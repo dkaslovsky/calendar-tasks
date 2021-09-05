@@ -55,9 +55,15 @@ func (p *Processor) Wait() {
 	p.wg.Wait()
 }
 
-// Tasks returnns processed tasks
-func (p *Processor) Tasks() map[int][]Task {
-	return p.tasks
+// GetTasks returns the tasks for a specified day
+func (p *Processor) GetTasks(day int) ([]Task, bool) {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+
+	if tsks, ok := p.tasks[day]; ok {
+		return tsks, true
+	}
+	return []Task{}, false
 }
 
 func (p *Processor) drain() {

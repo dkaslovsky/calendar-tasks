@@ -1,7 +1,6 @@
 package sources
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -47,9 +46,5 @@ func (m *Monthly) DaysFrom(t time.Time) int {
 }
 
 func (m *Monthly) String() string {
-	s, _ := json.MarshalIndent(map[string]string{
-		"Day":  fmt.Sprint(m.day),
-		"Text": m.text,
-	}, "", "\t")
-	return string(s)
+	return m.text
 }

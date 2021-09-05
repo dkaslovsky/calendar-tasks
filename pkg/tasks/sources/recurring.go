@@ -1,7 +1,6 @@
 package sources
 
 import (
-	"encoding/json"
 	"fmt"
 	"math"
 	"strconv"
@@ -86,13 +85,5 @@ func (r *Recurring) DaysFrom(t time.Time) int {
 }
 
 func (r *Recurring) String() string {
-	dates := []string{}
-	for _, date := range r.dates {
-		dates = append(dates, fmt.Sprintf("%s %d", date.month, date.day))
-	}
-	s, _ := json.MarshalIndent(map[string]string{
-		"Dates": strings.Join(dates, ", "),
-		"Text":  r.text,
-	}, "", "\t")
-	return string(s)
+	return r.text
 }

@@ -13,6 +13,10 @@ import (
 
 func main() {
 
+	//now := time.Now()
+	now := time.Date(2021, 8, 14, 0, 0, 0, 0, time.Local)
+	fmt.Printf("\nDEBUG MODE - USING FIXED DATE %s\n", now)
+
 	args := cmdArgs{}
 	args.attachArgs()
 
@@ -20,7 +24,7 @@ func main() {
 	done := make(chan struct{})
 
 	loader := tasks.NewLoader(taskChan, done)
-	processor := tasks.NewProcessor(time.Now(), args.days, taskChan, done)
+	processor := tasks.NewProcessor(now, args.days, taskChan, done)
 
 	loader.AddWeeklySource(args.weeklySources...)
 	loader.AddMonthlySource(args.monthlySources...)
@@ -31,7 +35,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	printTasks(processor.Tasks(), args.days)
+	printTasks(processor, args.days, now)
 }
 
 func run(loader *tasks.Loader, processor *tasks.Processor) error {
@@ -43,21 +47,22 @@ func run(loader *tasks.Loader, processor *tasks.Processor) error {
 	return loader.Start()
 }
 
-func printTasks(tsMap map[int][]tasks.Task, n int) {
-	for day := 0; day <= n; day++ {
-		ts, ok := tsMap[day]
+func printTasks(processor *tasks.Processor, numDays int, now time.Time) {
+	for day := 0; day <= numDays; day++ {
+		tsks, ok := processor.GetTasks(day)
 		if !ok {
 			continue
 		}
 
-		// sort for consistent ordering (current implementation is broken, will need proper String())
-		sort.Slice(ts, func(i, j int) bool {
-			return strings.ToLower(ts[i].String()) > strings.ToLower(ts[j].String())
+		// sort for consistent ordering
+		sort.Slice(tsks, func(i, j int) bool {
+			return strings.ToLower(tsks[i].String()) < strings.ToLower(tsks[j].String())
 		})
 
-		fmt.Printf("Day = %d\n", day)
-		for _, task := range ts {
-			fmt.Println(task)
+		dayStr := now.AddDate(0, 0, day).Format("[Mon] Jan 2 2006")
+		fmt.Printf("\n%s\n", dayStr)
+		for _, tsk := range tsks {
+			fmt.Printf("\t-%s\n", tsk)
 		}
 	}
 }

@@ -1,7 +1,6 @@
 package sources
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -34,9 +33,5 @@ func (w *Weekly) DaysFrom(t time.Time) int {
 }
 
 func (w *Weekly) String() string {
-	s, _ := json.MarshalIndent(map[string]string{
-		"Day":  w.day.String(),
-		"Text": w.text,
-	}, "", "\t")
-	return string(s)
+	return w.text
 }
