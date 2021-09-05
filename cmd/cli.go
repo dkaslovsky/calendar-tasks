@@ -12,7 +12,9 @@ import (
 )
 
 const (
-	name            = "calendar-tasks"
+	name    = "calendar-tasks"
+	version = "0.0.1" //hard-code version for now
+
 	printTimeFormat = "[Mon] Jan 2 2006"
 )
 
@@ -21,6 +23,7 @@ type cmdArgs struct {
 	weeklySources    stringSliceArg
 	monthlySources   stringSliceArg
 	multiDateSources stringSliceArg
+	version          bool
 }
 
 func (args *cmdArgs) parseArgs(argsIn []string) error {
@@ -29,6 +32,7 @@ func (args *cmdArgs) parseArgs(argsIn []string) error {
 	fs.Var(&args.weeklySources, "weekly", "weekly task source file path")
 	fs.Var(&args.monthlySources, "monthly", "monthly task source file path")
 	fs.Var(&args.multiDateSources, "multi", "multiDate task source file path")
+	fs.BoolVar(&args.version, "version", false, "display version info")
 
 	setUsage(fs)
 	return fs.Parse(argsIn)
@@ -37,7 +41,7 @@ func (args *cmdArgs) parseArgs(argsIn []string) error {
 // Run excutes the CLI
 func Run(argsIn []string) error {
 	args := &cmdArgs{}
-	err := parseArgs(args, argsIn)
+	err := setupArgs(args, argsIn)
 	if err != nil {
 		return err
 	}
@@ -104,13 +108,17 @@ func printTasks(processor *tasks.Processor, numDays int, startDate time.Time) {
 	}
 }
 
-func parseArgs(args *cmdArgs, argsIn []string) error {
+func setupArgs(args *cmdArgs, argsIn []string) error {
 	if len(argsIn) < 2 {
 		return args.parseArgs([]string{"--help"})
 	}
 	err := args.parseArgs(argsIn[1:])
 	if err != nil {
 		return err
+	}
+	if args.version {
+		printVersion()
+		return nil
 	}
 	if len(args.weeklySources)+len(args.monthlySources)+len(args.multiDateSources) == 0 {
 		return errors.New("no source files provided")
@@ -138,4 +146,8 @@ func setUsage(fs *flag.FlagSet) {
 		fmt.Printf("Flags:\n")
 		fs.PrintDefaults()
 	}
+}
+
+func printVersion() {
+	fmt.Printf("%s: v%s\n", name, version)
 }
