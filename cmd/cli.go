@@ -13,16 +13,15 @@ import (
 )
 
 const (
-	name    = "calendar-tasks"
-	version = "0.0.1" //hard-code version for now
+	name    = "calendar-tasks" // app name
+	version = "0.0.1"          // hard-code version for now
 
+	// environment variables
 	envWeeklySources    = "CALENDAR_TASKS_WEEKLY_SOURCES"
 	envMonthlySources   = "CALENDAR_TASKS_MONTHLY_SOURCES"
 	envMultiDateSources = "CALENDAR_TASKS_MULTIDATE_SOURCES"
 
-	versionCmd = "version"
-
-	printTimeFormat = "[Mon] Jan 2 2006"
+	printTimeFormat = "[Mon] Jan 2 2006" // format for displaying dates
 )
 
 type cmdArgs struct {
@@ -33,53 +32,11 @@ type cmdArgs struct {
 	version          bool
 }
 
-func (args *cmdArgs) parseArgs(argsIn []string) error {
-	fs := flag.NewFlagSet("calendar-tasks", flag.ExitOnError)
-	setUsage(fs)
-
-	err := fs.Parse(argsIn)
-	if err != nil {
-		return err
-	}
-
-	args.weeklySources = parseStringSliceEnvVar(os.Getenv(envWeeklySources))
-	args.monthlySources = parseStringSliceEnvVar(os.Getenv(envMonthlySources))
-	args.multiDateSources = parseStringSliceEnvVar(os.Getenv(envMultiDateSources))
-
-	if fs.NArg() == 0 {
-		return nil
-	}
-
-	if strings.ToLower(fs.Arg(0)) == versionCmd {
-		args.version = true
-		return nil
-	}
-
-	days, err := strconv.Atoi(fs.Arg(0))
-	if err != nil {
-		return err
-	}
-	args.days = days
-	return nil
-}
-
-// TESTS!!
-func parseStringSliceEnvVar(envStr string) []string {
-	parsed := []string{}
-	if envStr == "" {
-		return parsed
-	}
-	split := strings.Split(envStr, ",")
-	for _, s := range split {
-		parsed = append(parsed, strings.TrimSpace(s))
-	}
-	return parsed
-}
-
 // Run excutes the CLI
 func Run(argsIn []string) error {
+	flag.Usage = setUsage()
+
 	args := &cmdArgs{}
-	//err := setupArgs(args, argsIn)
 	err := args.parseArgs(argsIn[1:])
 	if err != nil {
 		return err
@@ -90,8 +47,11 @@ func Run(argsIn []string) error {
 		return nil
 	}
 
-	//date := fixDate(time.Now())
-	date := time.Date(2021, 8, 14, 12, 0, 0, 0, time.Local)
+	if args.numSources() == 0 {
+		return fmt.Errorf("no source files provided, run `%s --help` for more information", name)
+	}
+
+	date := fixDate(time.Now())
 
 	taskChan := make(chan tasks.Task, 1000) // buffer large enough for reasonable amount of tasks
 	done := make(chan struct{})
@@ -103,7 +63,7 @@ func Run(argsIn []string) error {
 	loader.AddMonthlySource(args.monthlySources...)
 	loader.AddMultiDateSource(args.multiDateSources...)
 
-	err = start(loader, processor)
+	err = run(loader, processor)
 	if err != nil {
 		return err
 	}
@@ -112,11 +72,10 @@ func Run(argsIn []string) error {
 	return nil
 }
 
-func start(loader *tasks.Loader, processor *tasks.Processor) error {
+func run(loader *tasks.Loader, processor *tasks.Processor) error {
 	// start the processor and wait on it to finish before returning
 	processor.Start()
 	defer processor.Wait()
-
 	// start the loader and return any errors
 	return loader.Start()
 }
@@ -129,6 +88,8 @@ func fixDate(now time.Time) time.Time {
 }
 
 func printTasks(processor *tasks.Processor, numDays int, startDate time.Time) {
+	numTasks := 0
+
 	for day := 0; day <= numDays; day++ {
 		tsks, ok := processor.GetTasks(day)
 		if !ok {
@@ -149,37 +110,81 @@ func printTasks(processor *tasks.Processor, numDays int, startDate time.Time) {
 
 		for _, tsk := range tsks {
 			fmt.Printf("\t-%s\n", tsk)
+			numTasks++
 		}
+	}
+
+	if numTasks == 0 {
+		fmt.Println("no tasks")
 	}
 }
 
-// func setupArgs(args *cmdArgs, argsIn []string) error {
-// 	if len(argsIn) < 2 {
-// 		return args.parseArgs([]string{"--help"})
-// 	}
-// 	err := args.parseArgs(argsIn[1:])
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if args.version {
-// 		return nil
-// 	}
-// 	if len(args.weeklySources)+len(args.monthlySources)+len(args.multiDateSources) == 0 {
-// 		return errors.New("no source files provided")
-// 	}
-// 	return nil
-// }
-
-func setUsage(fs *flag.FlagSet) {
-	fs.Usage = func() {
-		fmt.Printf("%s displays upcoming scheduled tasks\n\n", name)
-		fmt.Print("Usage:\n")
-		fmt.Printf("  %s [flags]\n\n", name)
-		fmt.Printf("Flags:\n")
-		fs.PrintDefaults()
+func setUsage() func() {
+	return func() {
+		fmt.Printf("%s displays upcoming scheduled tasks\n", name)
+		fmt.Printf("\nTasks are read from files specified in comma-separated environment variables:\n")
+		fmt.Printf("  %s \tsource files for weekly tasks   \tex: %s=\"file1,file2,...\"\n", envWeeklySources, envWeeklySources)
+		fmt.Printf("  %s\tsource files for monthly tasks  \tex: %s=\"file1,file2,...\"\n", envMonthlySources, envMonthlySources)
+		fmt.Printf("  %s\tsource files for multi-date tasks\tex: %s=\"file1,file2,...\"\n", envMultiDateSources, envMultiDateSources)
+		fmt.Print("\nUsage:\n")
+		fmt.Printf("  %s [args]\n", name)
+		fmt.Printf("  %s [flags]\n", name)
+		fmt.Printf("\nArgs:\n")
+		fmt.Printf("  days int\t number of days from today to get tasks \tdefault: 0 (today)\n")
+		fmt.Printf("\nFlags:\n")
+		fmt.Printf("  -h, --help\t display usage information\n")
+		fmt.Printf("  -v, --version\t display version information\n")
 	}
 }
 
 func printVersion() {
 	fmt.Printf("%s: v%s\n", name, version)
+}
+
+func (args *cmdArgs) parseArgs(argsIn []string) error {
+	flag.BoolVar(&args.version, "v", false, "display version information")
+	flag.BoolVar(&args.version, "version", false, "display version information")
+	flag.Parse()
+
+	if args.version {
+		return nil
+	}
+
+	// parse environment variables
+	args.weeklySources = parseStringSliceEnvVar(os.Getenv(envWeeklySources))
+	args.monthlySources = parseStringSliceEnvVar(os.Getenv(envMonthlySources))
+	args.multiDateSources = parseStringSliceEnvVar(os.Getenv(envMultiDateSources))
+
+	// run with defaults
+	if flag.NArg() == 0 {
+		args.days = 0
+		return nil
+	}
+
+	// parse args
+	dayStr := flag.Arg(0)
+	days, err := strconv.Atoi(dayStr)
+	if err != nil {
+		return fmt.Errorf("unparsable integer argument: %s", dayStr)
+	}
+	args.days = days
+
+	return nil
+}
+
+func (args *cmdArgs) numSources() int {
+	return len(args.weeklySources) + len(args.monthlySources) + len(args.multiDateSources)
+}
+
+// parseStringSliceEnvVar parses a comma-separated environment variable into a slice of string
+func parseStringSliceEnvVar(envStr string) []string {
+	parsed := []string{}
+	if envStr == "" {
+		return parsed
+	}
+	split := strings.Split(envStr, ",")
+	for _, s := range split {
+		parsed = append(parsed, strings.TrimSpace(s))
+	}
+	return parsed
 }
