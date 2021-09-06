@@ -1,4 +1,4 @@
-# Calendar-Tasks
+# calendar-tasks
 Simple CLI for tracking scheduled tasks
 
 ## Installation
