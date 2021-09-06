@@ -1,6 +1,12 @@
 # Calendar-Tasks
 Simple CLI for tracking scheduled tasks
 
+## Installation
+Using Go v1.17, simply run
+```
+$ go install github.com/dkaslovsky/calendar-tasks@latest
+```
+
 ## Usage
 
 `calendar-tasks` is a simple tool for tracking scheduled tasks from the commandline rather than on a calendar.
