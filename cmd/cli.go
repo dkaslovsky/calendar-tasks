@@ -37,7 +37,7 @@ func Run(argsIn []string) error {
 	flag.Usage = setUsage()
 
 	args := &cmdArgs{}
-	err := args.parseArgs(argsIn[1:])
+	err := args.parseArgs(argsIn)
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func Run(argsIn []string) error {
 	}
 
 	if args.numSources() == 0 {
-		return fmt.Errorf("no source files provided, run `%s --help` for more information", name)
+		return fmt.Errorf("no source files provided, run `%s --help` for usage", name)
 	}
 
 	date := fixDate(time.Now())
