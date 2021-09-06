@@ -3,7 +3,7 @@ Simple CLI for tracking scheduled tasks
 
 ## Usage
 
-`calendar-tasks` is a simple tool for tracking scheduled tasks from the command line rather than on a calendar.
+`calendar-tasks` is a simple tool for tracking scheduled tasks from the commandline rather than on a calendar.
 
 To check tasks for the next 3 days, pass the task files to `calendar-tasks` (see below) together with `-d 3` for the number of days. For example:
 ```
@@ -91,3 +91,6 @@ May 1: Renew lease
 ```
 Note that each line contains only one task and that dates can be repeated.
 Pass these files to `calendar-tasks` using the `--multi` flag.
+
+## Why the unstructured text files?
+The task files certainly could have been structured as yaml, json, or some other structured format, but `calendar-tasks` uses the above format to be human-readable and compatible with manipulation by other commandline tools. I find the current plain-text format easy to read and modify, but might also support structured files at some point in the future.
