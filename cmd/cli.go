@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	"errors"
 	"flag"
 	"fmt"
+	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,33 +16,71 @@ const (
 	name    = "calendar-tasks"
 	version = "0.0.1" //hard-code version for now
 
+	envWeeklySources    = "CALENDAR_TASKS_WEEKLY_SOURCES"
+	envMonthlySources   = "CALENDAR_TASKS_MONTHLY_SOURCES"
+	envMultiDateSources = "CALENDAR_TASKS_MULTIDATE_SOURCES"
+
+	versionCmd = "version"
+
 	printTimeFormat = "[Mon] Jan 2 2006"
 )
 
 type cmdArgs struct {
+	weeklySources    []string
+	monthlySources   []string
+	multiDateSources []string
 	days             int
-	weeklySources    stringSliceArg
-	monthlySources   stringSliceArg
-	multiDateSources stringSliceArg
 	version          bool
 }
 
 func (args *cmdArgs) parseArgs(argsIn []string) error {
 	fs := flag.NewFlagSet("calendar-tasks", flag.ExitOnError)
-	fs.IntVar(&args.days, "d", 0, "days ahead to get tasks")
-	fs.Var(&args.weeklySources, "weekly", "weekly task source file path")
-	fs.Var(&args.monthlySources, "monthly", "monthly task source file path")
-	fs.Var(&args.multiDateSources, "multi", "multiDate task source file path")
-	fs.BoolVar(&args.version, "v", false, "display version info")
-
 	setUsage(fs)
-	return fs.Parse(argsIn)
+
+	err := fs.Parse(argsIn)
+	if err != nil {
+		return err
+	}
+
+	args.weeklySources = parseStringSliceEnvVar(os.Getenv(envWeeklySources))
+	args.monthlySources = parseStringSliceEnvVar(os.Getenv(envMonthlySources))
+	args.multiDateSources = parseStringSliceEnvVar(os.Getenv(envMultiDateSources))
+
+	if fs.NArg() == 0 {
+		return nil
+	}
+
+	if strings.ToLower(fs.Arg(0)) == versionCmd {
+		args.version = true
+		return nil
+	}
+
+	days, err := strconv.Atoi(fs.Arg(0))
+	if err != nil {
+		return err
+	}
+	args.days = days
+	return nil
+}
+
+// TESTS!!
+func parseStringSliceEnvVar(envStr string) []string {
+	parsed := []string{}
+	if envStr == "" {
+		return parsed
+	}
+	split := strings.Split(envStr, ",")
+	for _, s := range split {
+		parsed = append(parsed, strings.TrimSpace(s))
+	}
+	return parsed
 }
 
 // Run excutes the CLI
 func Run(argsIn []string) error {
 	args := &cmdArgs{}
-	err := setupArgs(args, argsIn)
+	//err := setupArgs(args, argsIn)
+	err := args.parseArgs(argsIn[1:])
 	if err != nil {
 		return err
 	}
@@ -51,7 +90,8 @@ func Run(argsIn []string) error {
 		return nil
 	}
 
-	date := fixDate(time.Now())
+	//date := fixDate(time.Now())
+	date := time.Date(2021, 8, 14, 12, 0, 0, 0, time.Local)
 
 	taskChan := make(chan tasks.Task, 1000) // buffer large enough for reasonable amount of tasks
 	done := make(chan struct{})
@@ -113,34 +153,22 @@ func printTasks(processor *tasks.Processor, numDays int, startDate time.Time) {
 	}
 }
 
-func setupArgs(args *cmdArgs, argsIn []string) error {
-	if len(argsIn) < 2 {
-		return args.parseArgs([]string{"--help"})
-	}
-	err := args.parseArgs(argsIn[1:])
-	if err != nil {
-		return err
-	}
-	if args.version {
-		return nil
-	}
-	if len(args.weeklySources)+len(args.monthlySources)+len(args.multiDateSources) == 0 {
-		return errors.New("no source files provided")
-	}
-	return nil
-}
-
-// stringSliceArg is a flag that accumulates strings
-type stringSliceArg []string
-
-func (s *stringSliceArg) String() string {
-	return strings.Join(*s, " ")
-}
-
-func (s *stringSliceArg) Set(val string) error {
-	*s = append(*s, val)
-	return nil
-}
+// func setupArgs(args *cmdArgs, argsIn []string) error {
+// 	if len(argsIn) < 2 {
+// 		return args.parseArgs([]string{"--help"})
+// 	}
+// 	err := args.parseArgs(argsIn[1:])
+// 	if err != nil {
+// 		return err
+// 	}
+// 	if args.version {
+// 		return nil
+// 	}
+// 	if len(args.weeklySources)+len(args.monthlySources)+len(args.multiDateSources) == 0 {
+// 		return errors.New("no source files provided")
+// 	}
+// 	return nil
+// }
 
 func setUsage(fs *flag.FlagSet) {
 	fs.Usage = func() {
