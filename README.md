@@ -113,10 +113,10 @@ Note that each line contains only one task and that dates can be repeated.
 ## Implementation Notes
 
 ### Why not use a structured file format?
-While task files could have been structured as yaml, json, or some other standard format, but `calendar-tasks` uses the above format for ease of human-readable and manipulation by other commandline tools.
-I find the current plain-text format easy to read and modify, but might also support structured files at some point in the future.
+While task files could have been structured as yaml, json, or some other standard format, `calendar-tasks` uses the above format for readability and ease of manipulation by other commandline tools.
+The current plain-text format is easy to read and modify, but structured files might also be supported in a future version.
 
 ### Why not read the task files in serial?
-Task files are generally small and therefore very fast to read.
+Task files are generally small and fast to read.
 The performance gain by reading them in parallel is negligible, if it even exists.
-The reason for reading them in parallel is simply that it made this a more interesting project to develop.
+The reason for reading files in parallel is simply that it made this a more interesting project to develop.
