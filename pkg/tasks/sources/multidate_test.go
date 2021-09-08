@@ -242,12 +242,12 @@ func TestMultiDateDaysFrom(t *testing.T) {
 
 func TestNewMultiDate(t *testing.T) {
 	tests := map[string]struct {
-		raw           *RawLine
+		raw           *RawTask
 		expectedDates []*date
 		expectedText  string
 	}{
 		"single month": {
-			raw: &RawLine{
+			raw: &RawTask{
 				Date: "april 1",
 				Text: "foo bar woo",
 			},
@@ -260,7 +260,7 @@ func TestNewMultiDate(t *testing.T) {
 			expectedText: "foo bar woo",
 		},
 		"multiple months": {
-			raw: &RawLine{
+			raw: &RawTask{
 				Date: "april/may 12",
 				Text: "foo bar woo",
 			},
@@ -277,7 +277,7 @@ func TestNewMultiDate(t *testing.T) {
 			expectedText: "foo bar woo",
 		},
 		"multiple months unordered": {
-			raw: &RawLine{
+			raw: &RawTask{
 				Date: "april/may/january 15",
 				Text: "foo bar woo",
 			},
@@ -317,33 +317,33 @@ func TestNewMultiDate(t *testing.T) {
 
 func TestNewMultiDateError(t *testing.T) {
 	tests := map[string]struct {
-		raw *RawLine
+		raw *RawTask
 	}{
 		"empty": {
-			raw: &RawLine{},
+			raw: &RawTask{},
 		},
 		"invalid month": {
-			raw: &RawLine{
+			raw: &RawTask{
 				Date: "xxx",
 			},
 		},
 		"invalid second month": {
-			raw: &RawLine{
+			raw: &RawTask{
 				Date: "april/xxx",
 			},
 		},
 		"empty second month": {
-			raw: &RawLine{
+			raw: &RawTask{
 				Date: "april/",
 			},
 		},
 		"month without day": {
-			raw: &RawLine{
+			raw: &RawTask{
 				Date: "april/may",
 			},
 		},
 		"month with invalid day": {
-			raw: &RawLine{
+			raw: &RawTask{
 				Date: "april/may xxx",
 			},
 		},

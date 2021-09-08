@@ -1,31 +1,41 @@
 package sources
 
-import "testing"
+import (
+	"fmt"
+	"sort"
+	"testing"
+)
 
-func TestLoadLine(t *testing.T) {
+func TestParseLine(t *testing.T) {
 	tests := map[string]struct {
 		line     string
-		expected RawLine
+		expected []*RawTask
 	}{
 		"valid": {
 			line: "foo:bar",
-			expected: RawLine{
-				Date: "foo",
-				Text: "bar",
+			expected: []*RawTask{
+				{
+					Date: "foo",
+					Text: "bar",
+				},
 			},
 		},
 		"valid with spaces": {
 			line: "foo:  bar",
-			expected: RawLine{
-				Date: "foo",
-				Text: "bar",
+			expected: []*RawTask{
+				{
+					Date: "foo",
+					Text: "bar",
+				},
 			},
 		},
 		"multiple delimiters": {
 			line: "foo:bar:baz",
-			expected: RawLine{
-				Date: "foo",
-				Text: "bar:baz",
+			expected: []*RawTask{
+				{
+					Date: "foo",
+					Text: "bar:baz",
+				},
 			},
 		},
 	}
@@ -33,12 +43,25 @@ func TestLoadLine(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			result, err := LoadLine(test.line)
+			result, err := ParseLine(test.line)
 			if err != nil {
 				t.Fatalf("unexpected non-nil error: %v", err)
 			}
-			if result.Date != test.expected.Date || result.Text != test.expected.Text {
-				t.Fatalf("result %v does not equal expected %v", result, test.expected)
+			if len(result) != len(test.expected) {
+				t.Fatalf("number of results %d not equal to expected number of results %d", len(result), len(test.expected))
+			}
+			sort.Slice(result, func(i, j int) bool {
+				return testRawTaskSortKey(result[i]) > testRawTaskSortKey(result[j])
+			})
+			sort.Slice(test.expected, func(i, j int) bool {
+				return testRawTaskSortKey(test.expected[i]) > testRawTaskSortKey(test.expected[j])
+			})
+			for i := 0; i < len(result); i++ {
+				r := result[i]
+				e := test.expected[i]
+				if r.Date != e.Date || r.Text != e.Text {
+					t.Fatalf("result %v does not equal expected %v", r, e)
+				}
 			}
 		})
 	}
@@ -62,10 +85,15 @@ func TestLoadLineError(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			_, err := LoadLine(test.line)
+			_, err := ParseLine(test.line)
 			if err == nil {
 				t.Fatal("unexpected nil error")
 			}
 		})
 	}
+}
+
+// testRawTaskSortKey creates a string for sorting RawTasks
+func testRawTaskSortKey(r *RawTask) string {
+	return fmt.Sprintf("Date-%s-Text-%s", r.Date, r.Text)
 }

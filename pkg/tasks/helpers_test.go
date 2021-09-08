@@ -19,7 +19,7 @@ func (tt *testTask) String() string { return "" }
 
 func (tt *testTask) equal(other *testTask) bool { return tt.id == other.id }
 
-func newTestTask(rl *sources.RawLine) (Task, error) {
+func newTestTask(rl *sources.RawTask) (Task, error) {
 	return &testTask{
 		id:       rl.Text,
 		daysFrom: 1,

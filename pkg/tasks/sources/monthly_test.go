@@ -91,12 +91,12 @@ func TestMonthlyDaysFrom(t *testing.T) {
 
 func TestNewMonthly(t *testing.T) {
 	tests := map[string]struct {
-		raw          *RawLine
+		raw          *RawTask
 		expectedDay  int
 		expectedText string
 	}{
 		"valid": {
-			raw: &RawLine{
+			raw: &RawTask{
 				Date: "12",
 				Text: "foo bar woo",
 			},
@@ -124,13 +124,13 @@ func TestNewMonthly(t *testing.T) {
 
 func TestNewMonthlyError(t *testing.T) {
 	tests := map[string]struct {
-		raw *RawLine
+		raw *RawTask
 	}{
 		"empty": {
-			raw: &RawLine{},
+			raw: &RawTask{},
 		},
 		"invalid date": {
-			raw: &RawLine{
+			raw: &RawTask{
 				Date: "not a number",
 			},
 		},

@@ -46,12 +46,12 @@ func TestWeeklyDaysFrom(t *testing.T) {
 
 func TestNewWeekly(t *testing.T) {
 	tests := map[string]struct {
-		raw          *RawLine
+		raw          *RawTask
 		expectedDay  time.Weekday
 		expectedText string
 	}{
 		"valid": {
-			raw: &RawLine{
+			raw: &RawTask{
 				Date: "Monday",
 				Text: "foo bar woo",
 			},
@@ -79,13 +79,13 @@ func TestNewWeekly(t *testing.T) {
 
 func TestNewWeeklyError(t *testing.T) {
 	tests := map[string]struct {
-		raw *RawLine
+		raw *RawTask
 	}{
 		"empty": {
-			raw: &RawLine{},
+			raw: &RawTask{},
 		},
 		"invalid date": {
-			raw: &RawLine{
+			raw: &RawTask{
 				Date: "funday",
 			},
 		},
