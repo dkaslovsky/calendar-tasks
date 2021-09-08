@@ -63,7 +63,7 @@ func (m *MultiDate) DaysFrom(t time.Time) int {
 	nowMonth := t.Month()
 	nowLoc := t.Location()
 
-	curDiff := 10e8
+	curDiff := 10e8 // any large value > 366 will work
 	for _, date := range m.dates {
 		curT := time.Date(nowYear, date.month, date.day, 0, 0, 0, 0, nowLoc)
 		diff := curT.Sub(t).Hours() / 24
