@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/dkaslovsky/calendar-tasks/pkg/tasks/sources"
 	"golang.org/x/sync/errgroup"
@@ -23,15 +24,14 @@ type Loader struct {
 	monthly   []string
 	multiDate []string
 
-	ctx    context.Context
-	cancel context.CancelFunc
-	eg     *errgroup.Group
+	ctx context.Context
+	eg  *errgroup.Group
 }
 
 // NewLoader constructs a Loader
 func NewLoader(ch chan Task, done chan struct{}) *Loader {
-	ctx, cancel := context.WithCancel(context.Background())
-	eg, ctx := errgroup.WithContext(ctx)
+	// ctx, cancel := context.WithCancel(context.Background())
+	eg, ctx := errgroup.WithContext(context.Background())
 	return &Loader{
 		ch:   ch,
 		done: done,
@@ -40,9 +40,8 @@ func NewLoader(ch chan Task, done chan struct{}) *Loader {
 		monthly:   []string{},
 		multiDate: []string{},
 
-		ctx:    ctx,
-		cancel: cancel,
-		eg:     eg,
+		ctx: ctx,
+		eg:  eg,
 	}
 }
 
@@ -68,46 +67,41 @@ func (l *Loader) Start() error {
 	}()
 
 	// start one worker for each type of task (weekly, monthly, multiDate)
-	weeklyCh := make(chan io.ReadCloser, len(l.weekly))
+	weeklyCh := make(chan string, len(l.weekly))
 	l.eg.Go(func() error {
 		return l.scan(weeklyCh, newWeeklyTask)
 	})
-	monthlyCh := make(chan io.ReadCloser, len(l.monthly))
+	monthlyCh := make(chan string, len(l.monthly))
 	l.eg.Go(func() error {
 		return l.scan(monthlyCh, newMonthlyTask)
 	})
-	multiDateCh := make(chan io.ReadCloser, len(l.multiDate))
+	multiDateCh := make(chan string, len(l.multiDate))
 	l.eg.Go(func() error {
 		return l.scan(multiDateCh, newMultiDateTask)
 	})
 
-	// process each weekly task file
-	for _, fp := range l.weekly {
-		f, err := os.Open(filepath.Clean(fp))
-		if err != nil {
-			l.cancel()
-			return err
+	// send each file on the appropriate channel to be processed
+	wg := sync.WaitGroup{}
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		for _, fp := range l.weekly {
+			weeklyCh <- fp
 		}
-		weeklyCh <- f
-	}
-	// process each monthly task file
-	for _, fp := range l.monthly {
-		f, err := os.Open(filepath.Clean(fp))
-		if err != nil {
-			l.cancel()
-			return err
+	}()
+	go func() {
+		defer wg.Done()
+		for _, fp := range l.monthly {
+			monthlyCh <- fp
 		}
-		monthlyCh <- f
-	}
-	// process each multiDate task file
-	for _, fp := range l.multiDate {
-		f, err := os.Open(filepath.Clean(fp))
-		if err != nil {
-			l.cancel()
-			return err
+	}()
+	go func() {
+		defer wg.Done()
+		for _, fp := range l.multiDate {
+			multiDateCh <- fp
 		}
-		multiDateCh <- f
-	}
+	}()
+	wg.Wait()
 
 	close(weeklyCh)
 	close(monthlyCh)
@@ -115,10 +109,14 @@ func (l *Loader) Start() error {
 	return l.eg.Wait()
 }
 
-// scan is a worker that loads the tasks it receives on a channel
-func (l *Loader) scan(rcs <-chan io.ReadCloser, newTask func(*sources.RawLine) (Task, error)) error {
-	for r := range rcs {
-		err := scan(l.ctx, r, newTask, l.ch)
+// scan is a worker that loads the tasks from file names it receives on a channel
+func (l *Loader) scan(fileCh <-chan string, newTask func(*sources.RawLine) (Task, error)) error {
+	for fp := range fileCh {
+		f, err := os.Open(filepath.Clean(fp))
+		if err != nil {
+			return err
+		}
+		err = scan(l.ctx, f, newTask, l.ch)
 		if err != nil {
 			return err
 		}
