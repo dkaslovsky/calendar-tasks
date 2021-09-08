@@ -30,7 +30,6 @@ type Loader struct {
 
 // NewLoader constructs a Loader
 func NewLoader(ch chan Task, done chan struct{}) *Loader {
-	// ctx, cancel := context.WithCancel(context.Background())
 	eg, ctx := errgroup.WithContext(context.Background())
 	return &Loader{
 		ch:   ch,
@@ -109,8 +108,10 @@ func (l *Loader) Start() error {
 	return l.eg.Wait()
 }
 
+type newTaskF func(*sources.RawTask) (Task, error)
+
 // scan is a worker that loads the tasks from file names it receives on a channel
-func (l *Loader) scan(fileCh <-chan string, newTask func(*sources.RawLine) (Task, error)) error {
+func (l *Loader) scan(fileCh <-chan string, newTask newTaskF) error {
 	for fp := range fileCh {
 		f, err := os.Open(filepath.Clean(fp))
 		if err != nil {
@@ -124,7 +125,7 @@ func (l *Loader) scan(fileCh <-chan string, newTask func(*sources.RawLine) (Task
 	return nil
 }
 
-func scan(ctx context.Context, r io.ReadCloser, newTask func(*sources.RawLine) (Task, error), taskCh chan Task) error {
+func scan(ctx context.Context, r io.ReadCloser, newTask newTaskF, taskCh chan Task) error {
 	defer r.Close() //nolint
 	nTasks := 0
 
@@ -140,17 +141,19 @@ func scan(ctx context.Context, r io.ReadCloser, newTask func(*sources.RawLine) (
 		if strings.ReplaceAll(line, " ", "") == "" {
 			continue
 		}
-		rl, err := sources.LoadLine(line)
+		rawTasks, err := sources.ParseLine(line)
 		if err != nil {
 			return fmt.Errorf("failed to load line: %v", err)
 		}
-		t, err := newTask(rl)
-		if err != nil {
-			return fmt.Errorf("failed to parse line: %v", err)
-		}
+		for _, rawTask := range rawTasks {
+			t, err := newTask(rawTask)
+			if err != nil {
+				return fmt.Errorf("failed to parse line: %v", err)
+			}
 
-		taskCh <- t
-		nTasks++
+			taskCh <- t
+			nTasks++
+		}
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -162,14 +165,14 @@ func scan(ctx context.Context, r io.ReadCloser, newTask func(*sources.RawLine) (
 	return nil
 }
 
-func newWeeklyTask(r *sources.RawLine) (Task, error) {
+func newWeeklyTask(r *sources.RawTask) (Task, error) {
 	return sources.NewWeekly(r)
 }
 
-func newMonthlyTask(r *sources.RawLine) (Task, error) {
+func newMonthlyTask(r *sources.RawTask) (Task, error) {
 	return sources.NewMonthly(r)
 }
 
-func newMultiDateTask(r *sources.RawLine) (Task, error) {
+func newMultiDateTask(r *sources.RawTask) (Task, error) {
 	return sources.NewMultiDate(r)
 }

@@ -24,7 +24,7 @@ type MultiDate struct {
 }
 
 // NewMultiDate constructs a MultiDate
-func NewMultiDate(raw *RawLine) (*MultiDate, error) {
+func NewMultiDate(raw *RawTask) (*MultiDate, error) {
 	dateParts := strings.SplitN(raw.Date, " ", 2)
 	if len(dateParts) != 2 {
 		return &MultiDate{}, fmt.Errorf("invalid multiple date [%s]", raw.Date)

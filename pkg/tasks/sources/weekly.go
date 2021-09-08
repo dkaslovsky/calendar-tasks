@@ -14,7 +14,7 @@ type Weekly struct {
 }
 
 // NewWeekly constructs a Weekly
-func NewWeekly(raw *RawLine) (*Weekly, error) {
+func NewWeekly(raw *RawTask) (*Weekly, error) {
 	day, err := calendar.ParseWeekday(raw.Date)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse date: %v", err)

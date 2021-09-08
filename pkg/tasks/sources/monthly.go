@@ -15,7 +15,7 @@ type Monthly struct {
 }
 
 // NewMonthly constructs a Monthly
-func NewMonthly(raw *RawLine) (*Monthly, error) {
+func NewMonthly(raw *RawTask) (*Monthly, error) {
 	day, err := strconv.ParseInt(raw.Date, 10, 0)
 	if err != nil {
 		return &Monthly{}, fmt.Errorf("could not parse date: %v", err)
