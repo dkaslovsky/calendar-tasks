@@ -1,11 +1,16 @@
 # calendar-tasks
 Simple CLI for tracking scheduled tasks
 
+</br>
+
 ## Installation
 Using Go >= 1.17, run
 ```
 $ go install github.com/dkaslovsky/calendar-tasks@latest
 ```
+Earlier versions of Go might use the `go get` command.
+
+</br>
 
 ## Usage
 `calendar-tasks` is a simple tool for tracking scheduled tasks from the commandline rather than on a calendar.
@@ -35,9 +40,9 @@ $ calendar-tasks --help
 calendar-tasks displays upcoming scheduled tasks
 
 Tasks are read from files specified in comma-separated environment variables:
-  CALENDAR_TASKS_WEEKLY_SOURCES 	source files for weekly tasks   	ex: CALENDAR_TASKS_WEEKLY_SOURCES="file1,file2,..."
-  CALENDAR_TASKS_MONTHLY_SOURCES	source files for monthly tasks  	ex: CALENDAR_TASKS_MONTHLY_SOURCES="file1,file2,..."
-  CALENDAR_TASKS_MULTIDATE_SOURCES	source files for multi-date tasks	ex: CALENDAR_TASKS_MULTIDATE_SOURCES="file1,file2,..."
+  CALENDAR_TASKS_WEEKLY_SOURCES		source files for weekly tasks		ex: CALENDAR_TASKS_WEEKLY_SOURCES="file1,file2,..."
+  CALENDAR_TASKS_MONTHLY_SOURCES	source files for monthly tasks		ex: CALENDAR_TASKS_MONTHLY_SOURCES="file1,file2,..."
+  CALENDAR_TASKS_ANNUAL_SOURCES		source files for annual tasks		ex: CALENDAR_TASKS_ANNUAL_SOURCES="file1,file2,..."
 
 Usage:
   calendar-tasks [args]
@@ -53,13 +58,16 @@ Flags:
 
 ## Task Source Files
 Tasks are stored in text files, the paths to which are set using environment variables.
-There are three types of supported task files: weekly, monthly, and multi-dated (see subsections below).
+There are three types of supported task files: weekly, monthly, and annual (see descriptions below).
 
-Paths to all weekly files are stored in the `CALENDAR_TASKS_WEEKLY_SOURCES` environment variable.
+Paths to all weekly task files are stored in the `CALENDAR_TASKS_WEEKLY_SOURCES` environment variable.
 
-Paths to all monthly files are stored in the `CALENDAR_TASKS_MONTHLY_SOURCES` environment variable.
+Paths to all monthly task files are stored in the `CALENDAR_TASKS_MONTHLY_SOURCES` environment variable.
 
-Paths to all multi-date files are stored in the `CALENDAR_TASKS_MULTIDATE_SOURCES` environment variable.
+Paths to all annual task files are stored in the `CALENDAR_TASKS_ANNUAL_SOURCES` environment variable.
+
+Each environment variable supports specifying multiple files so that the source files can be organized however a user wishes.
+For example, it might be convenient to store each month's tasks in separate monthly task files.
 
 </br>
 
@@ -70,8 +78,11 @@ Sun: Grocery shopping
 Sun: Play with kids
 Wed: Garbage night
 Thu: Coffee with Amy
+Wed/Sat/Sun: Hiking
 ```
-Note that each line contains only one task and that days can be repeated.
+Note that each line contains only one task and that days can be repeated on multiple lines.
+Tasks occurring on multiple days are indicated by using the forward-slash separator between days: `<day-of-the-week1/day-of-the-week2>/...:<task>`.
+Days can be specified using their full name or three-letter abbreviation.
 
 </br>
 
@@ -81,34 +92,29 @@ Monthly tasks are tasks that occur on the same day each month. Such tasks are st
 3: Pay credit card bill
 15: Meet with Alice and Bob
 15: Poker night
-30: Pay Mortgage
+25: Pay Mortgage
+15/30: Pick up paycheck
 ```
 Note that each line contains only one task and that days of the month can be repeated.
+Tasks occurring on multiple days are indicated by using the forward-slash separator between days: `<day-of-the-month>/<day-of-the-month>/...:<task>`.
 
 </br>
 
-### Multi-dated Task Source Files
-Multi-dated tasks are tasks that occur on multiple dates. There are usually two types: multiple-month tasks and annual tasks.
-
-*Multiple-month*
-
-Multiple-month tasks are tasks that occur on the same day of multiple months. Such tasks are stored in a file with each line having the form `<month/month/.../month day-of-the-month>:<task>`. For example
-```
-Mar/Nov 1: Change smoke alarm batteries
-Jan/Jun 15: Pay property taxes
-Jan/Apr/Jul/Oct 30: Consulting appointment
-```
-Note that each line contains only one task and that dates can be repeated.
-
-*Annual*
-
-Annual tasks are tasks that occur on the same day each year. Such tasks are stored in a file with each line having the form `<month day-of-the-month>:<task>`. For example
+### Annual Task Source Files
+Annual tasks are tasks that occur on a specific day of the year, specified by a month and a day.
+Such tasks are stored in a file with each line having the form `<month day-of-the-month>:<task>`.
+For example,
 ```
 Jan 12: Daughter's birthday
 April 15: File taxes
 May 1: Renew lease
+Mar 1/Nov 1: Change smoke alarm batteries
 ```
 Note that each line contains only one task and that dates can be repeated.
+Tasks occurring on multiple dates are indicated by using the forward-slash separator between dates: `<month day-of-the-month>/<month day-of-the-month>/...:<task>`.
+Months can be specified using their full name or common abbreviation.
+
+</br>
 
 ## Implementation Notes
 
