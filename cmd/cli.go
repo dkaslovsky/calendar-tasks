@@ -123,9 +123,9 @@ func setUsage() func() {
 	return func() {
 		fmt.Printf("%s displays upcoming scheduled tasks\n", name)
 		fmt.Printf("\nTasks are read from files specified in comma-separated environment variables:\n")
-		fmt.Printf("  %s \tsource files for weekly tasks   \tex: %s=\"file1,file2,...\"\n", envWeeklySources, envWeeklySources)
-		fmt.Printf("  %s\tsource files for monthly tasks  \tex: %s=\"file1,file2,...\"\n", envMonthlySources, envMonthlySources)
-		fmt.Printf("  %s\tsource files for annual tasks\tex: %s=\"file1,file2,...\"\n", envAnnualSources, envAnnualSources)
+		fmt.Printf("  %s\t\tsource files for weekly tasks\t\tex: %s=\"file1,file2,...\"\n", envWeeklySources, envWeeklySources)
+		fmt.Printf("  %s\tsource files for monthly tasks\t\tex: %s=\"file1,file2,...\"\n", envMonthlySources, envMonthlySources)
+		fmt.Printf("  %s\t\tsource files for annual tasks\t\tex: %s=\"file1,file2,...\"\n", envAnnualSources, envAnnualSources)
 		fmt.Print("\nUsage:\n")
 		fmt.Printf("  %s [args]\n", name)
 		fmt.Printf("  %s [flags]\n", name)
