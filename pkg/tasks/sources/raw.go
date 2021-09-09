@@ -10,7 +10,7 @@ const (
 	multiDateSeparator = "/"
 )
 
-// RawLine represents a line from an input source file - RENAME TO rawTask
+// RawTask represents an unprocessed task parsed from a line of an input source file
 type RawTask struct {
 	Date string
 	Text string
@@ -26,11 +26,11 @@ func ParseLine(line string) ([]*RawTask, error) {
 	}
 
 	dateParts := strings.Split(parts[0], multiDateSeparator)
-	text := cleanText(parts[1])
+	text := cleanString(parts[1])
 
 	for _, date := range dateParts {
 		rt := &RawTask{
-			Date: date,
+			Date: cleanString(date),
 			Text: text,
 		}
 		rts = append(rts, rt)
@@ -38,6 +38,6 @@ func ParseLine(line string) ([]*RawTask, error) {
 	return rts, nil
 }
 
-func cleanText(s string) string {
-	return strings.TrimLeft(s, " ")
+func cleanString(s string) string {
+	return strings.TrimSpace(s)
 }

@@ -38,6 +38,70 @@ func TestParseLine(t *testing.T) {
 				},
 			},
 		},
+		"valid with multiple annual dates": {
+			line: "mar 1/april 2/jan 3: foo",
+			expected: []*RawTask{
+				{
+					Date: "jan 3",
+					Text: "foo",
+				},
+				{
+					Date: "mar 1",
+					Text: "foo",
+				},
+				{
+					Date: "april 2",
+					Text: "foo",
+				},
+			},
+		},
+		"valid with multiple weekly dates": {
+			line: "sat/sun: foo/bar",
+			expected: []*RawTask{
+				{
+					Date: "sat",
+					Text: "foo/bar",
+				},
+				{
+					Date: "sun",
+					Text: "foo/bar",
+				},
+			},
+		},
+		"valid with multiple monthly dates": {
+			line: "4/25/31:woo",
+			expected: []*RawTask{
+				{
+					Date: "4",
+					Text: "woo",
+				},
+				{
+					Date: "25",
+					Text: "woo",
+				},
+				{
+					Date: "31",
+					Text: "woo",
+				},
+			},
+		},
+		"valid with multiple dates and spaces": {
+			line: "date1 / date2 / date3:woo",
+			expected: []*RawTask{
+				{
+					Date: "date1",
+					Text: "woo",
+				},
+				{
+					Date: "date2",
+					Text: "woo",
+				},
+				{
+					Date: "date3",
+					Text: "woo",
+				},
+			},
+		},
 	}
 
 	for name, test := range tests {
@@ -77,8 +141,11 @@ func TestLoadLineError(t *testing.T) {
 		"empty with spaces": {
 			line: "    ",
 		},
-		"no delimiter": {
+		"no date-text separator one string": {
 			line: "foobar",
+		},
+		"no date-text separator multiple strings": {
+			line: "foobar xyz aaabbb",
 		},
 	}
 
