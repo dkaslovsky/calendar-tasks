@@ -20,9 +20,9 @@ type Loader struct {
 	ch   chan Task
 	done chan struct{}
 
-	weekly    []string
-	monthly   []string
-	multiDate []string
+	weekly  []string
+	monthly []string
+	annual  []string
 
 	ctx context.Context
 	eg  *errgroup.Group
@@ -35,9 +35,9 @@ func NewLoader(ch chan Task, done chan struct{}) *Loader {
 		ch:   ch,
 		done: done,
 
-		weekly:    []string{},
-		monthly:   []string{},
-		multiDate: []string{},
+		weekly:  []string{},
+		monthly: []string{},
+		annual:  []string{},
 
 		ctx: ctx,
 		eg:  eg,
@@ -54,9 +54,9 @@ func (l *Loader) AddMonthlySource(s ...string) {
 	l.monthly = append(l.monthly, s...)
 }
 
-// AddMultiDateSource adds the name of a source file from which multiDate tasks are loaded
-func (l *Loader) AddMultiDateSource(s ...string) {
-	l.multiDate = append(l.multiDate, s...)
+// AddAnnualSource adds the name of a source file from which annual tasks are loaded
+func (l *Loader) AddAnnualSource(s ...string) {
+	l.annual = append(l.annual, s...)
 }
 
 // Start launches the goroutines that load each task type
@@ -65,7 +65,7 @@ func (l *Loader) Start() error {
 		l.done <- struct{}{}
 	}()
 
-	// start one worker for each type of task (weekly, monthly, multiDate)
+	// start one worker for each type of task (weekly, monthly, annual)
 	weeklyCh := make(chan string, len(l.weekly))
 	l.eg.Go(func() error {
 		return l.scan(weeklyCh, newWeeklyTask)
@@ -74,9 +74,9 @@ func (l *Loader) Start() error {
 	l.eg.Go(func() error {
 		return l.scan(monthlyCh, newMonthlyTask)
 	})
-	multiDateCh := make(chan string, len(l.multiDate))
+	annualCh := make(chan string, len(l.annual))
 	l.eg.Go(func() error {
-		return l.scan(multiDateCh, newMultiDateTask)
+		return l.scan(annualCh, newAnnualTask)
 	})
 
 	// send each file on the appropriate channel to be processed
@@ -96,15 +96,15 @@ func (l *Loader) Start() error {
 	}()
 	go func() {
 		defer wg.Done()
-		for _, fp := range l.multiDate {
-			multiDateCh <- fp
+		for _, fp := range l.annual {
+			annualCh <- fp
 		}
 	}()
 	wg.Wait()
 
 	close(weeklyCh)
 	close(monthlyCh)
-	close(multiDateCh)
+	close(annualCh)
 	return l.eg.Wait()
 }
 
@@ -173,6 +173,6 @@ func newMonthlyTask(r *sources.RawTask) (Task, error) {
 	return sources.NewMonthly(r)
 }
 
-func newMultiDateTask(r *sources.RawTask) (Task, error) {
-	return sources.NewMultiDate(r)
+func newAnnualTask(r *sources.RawTask) (Task, error) {
+	return sources.NewAnnual(r)
 }

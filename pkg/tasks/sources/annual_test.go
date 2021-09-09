@@ -5,14 +5,14 @@ import (
 	"time"
 )
 
-func TestMultiDateDaysFrom(t *testing.T) {
+func TestAnnualDaysFrom(t *testing.T) {
 	tests := map[string]struct {
-		r        *MultiDate
+		r        *Annual
 		now      time.Time
 		expected int
 	}{
 		"same day": {
-			r: &MultiDate{
+			r: &Annual{
 				month: time.August,
 				day:   6,
 			},
@@ -20,7 +20,7 @@ func TestMultiDateDaysFrom(t *testing.T) {
 			expected: 0,
 		},
 		"next day": {
-			r: &MultiDate{
+			r: &Annual{
 				month: time.August,
 				day:   7,
 			},
@@ -28,7 +28,7 @@ func TestMultiDateDaysFrom(t *testing.T) {
 			expected: 1,
 		},
 		"previous day": {
-			r: &MultiDate{
+			r: &Annual{
 				month: time.August,
 				day:   5,
 			},
@@ -36,7 +36,7 @@ func TestMultiDateDaysFrom(t *testing.T) {
 			expected: 364,
 		},
 		"previous day including leap year starting past February": {
-			r: &MultiDate{
+			r: &Annual{
 				month: time.August,
 				day:   5,
 			},
@@ -44,7 +44,7 @@ func TestMultiDateDaysFrom(t *testing.T) {
 			expected: 365,
 		},
 		"previous day including leap year starting before February": {
-			r: &MultiDate{
+			r: &Annual{
 				month: time.January,
 				day:   5,
 			},
@@ -52,7 +52,7 @@ func TestMultiDateDaysFrom(t *testing.T) {
 			expected: 365,
 		},
 		"previous day including leap year starting in February": {
-			r: &MultiDate{
+			r: &Annual{
 				month: time.February,
 				day:   5,
 			},
@@ -60,7 +60,7 @@ func TestMultiDateDaysFrom(t *testing.T) {
 			expected: 365,
 		},
 		"previous day including leap year starting on February 28": {
-			r: &MultiDate{
+			r: &Annual{
 				month: time.February,
 				day:   27,
 			},
@@ -68,7 +68,7 @@ func TestMultiDateDaysFrom(t *testing.T) {
 			expected: 365,
 		},
 		"previous day including leap year starting on February 29": {
-			r: &MultiDate{
+			r: &Annual{
 				month: time.February,
 				day:   28,
 			},
@@ -76,7 +76,7 @@ func TestMultiDateDaysFrom(t *testing.T) {
 			expected: 365,
 		},
 		"next month": {
-			r: &MultiDate{
+			r: &Annual{
 				month: time.September,
 				day:   6,
 			},
@@ -84,7 +84,7 @@ func TestMultiDateDaysFrom(t *testing.T) {
 			expected: 31,
 		},
 		"24 hours away": {
-			r: &MultiDate{
+			r: &Annual{
 				month: time.August,
 				day:   15,
 			},
@@ -92,7 +92,7 @@ func TestMultiDateDaysFrom(t *testing.T) {
 			expected: 1,
 		},
 		"within 24 hours": {
-			r: &MultiDate{
+			r: &Annual{
 				month: time.August,
 				day:   15,
 			},
@@ -100,7 +100,7 @@ func TestMultiDateDaysFrom(t *testing.T) {
 			expected: 1,
 		},
 		"one second away from today": {
-			r: &MultiDate{
+			r: &Annual{
 				month: time.August,
 				day:   15,
 			},
@@ -108,7 +108,7 @@ func TestMultiDateDaysFrom(t *testing.T) {
 			expected: 1,
 		},
 		"exactly same time": {
-			r: &MultiDate{
+			r: &Annual{
 				month: time.August,
 				day:   15,
 			},
@@ -128,17 +128,17 @@ func TestMultiDateDaysFrom(t *testing.T) {
 	}
 }
 
-func TestNewMultiDate(t *testing.T) {
+func TestNewAnnual(t *testing.T) {
 	tests := map[string]struct {
 		raw      *RawTask
-		expected *MultiDate
+		expected *Annual
 	}{
 		"single month": {
 			raw: &RawTask{
 				Date: "april 17",
 				Text: "foo bar woo",
 			},
-			expected: &MultiDate{
+			expected: &Annual{
 				month: time.April,
 				day:   17,
 				text:  "foo bar woo",
@@ -149,7 +149,7 @@ func TestNewMultiDate(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			result, err := NewMultiDate(test.raw)
+			result, err := NewAnnual(test.raw)
 			if err != nil {
 				t.Fatalf("unexpected non-nil error: %v", err)
 			}
@@ -167,7 +167,7 @@ func TestNewMultiDate(t *testing.T) {
 
 }
 
-func TestNewMultiDateError(t *testing.T) {
+func TestNewAnnualError(t *testing.T) {
 	tests := map[string]struct {
 		raw *RawTask
 	}{
@@ -194,7 +194,7 @@ func TestNewMultiDateError(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			_, err := NewMultiDate(test.raw)
+			_, err := NewAnnual(test.raw)
 			if err == nil {
 				t.Fatal("unexpected nil error")
 			}

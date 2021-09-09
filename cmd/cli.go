@@ -17,19 +17,19 @@ const (
 	version = "0.0.1"          // hard-code version for now
 
 	// environment variables
-	envWeeklySources    = "CALENDAR_TASKS_WEEKLY_SOURCES"
-	envMonthlySources   = "CALENDAR_TASKS_MONTHLY_SOURCES"
-	envMultiDateSources = "CALENDAR_TASKS_MULTIDATE_SOURCES"
+	envWeeklySources  = "CALENDAR_TASKS_WEEKLY_SOURCES"
+	envMonthlySources = "CALENDAR_TASKS_MONTHLY_SOURCES"
+	envAnnualSources  = "CALENDAR_TASKS_ANNUAL_SOURCES"
 
 	printTimeFormat = "[Mon] Jan 2 2006" // format for displaying dates
 )
 
 type cmdArgs struct {
-	weeklySources    []string
-	monthlySources   []string
-	multiDateSources []string
-	days             int
-	version          bool
+	weeklySources  []string
+	monthlySources []string
+	annualSources  []string
+	days           int
+	version        bool
 }
 
 // Run excutes the CLI
@@ -61,7 +61,7 @@ func Run(argsIn []string) error {
 
 	loader.AddWeeklySource(args.weeklySources...)
 	loader.AddMonthlySource(args.monthlySources...)
-	loader.AddMultiDateSource(args.multiDateSources...)
+	loader.AddAnnualSource(args.annualSources...)
 
 	err = run(loader, processor)
 	if err != nil {
@@ -125,7 +125,7 @@ func setUsage() func() {
 		fmt.Printf("\nTasks are read from files specified in comma-separated environment variables:\n")
 		fmt.Printf("  %s \tsource files for weekly tasks   \tex: %s=\"file1,file2,...\"\n", envWeeklySources, envWeeklySources)
 		fmt.Printf("  %s\tsource files for monthly tasks  \tex: %s=\"file1,file2,...\"\n", envMonthlySources, envMonthlySources)
-		fmt.Printf("  %s\tsource files for multi-date tasks\tex: %s=\"file1,file2,...\"\n", envMultiDateSources, envMultiDateSources)
+		fmt.Printf("  %s\tsource files for annual tasks\tex: %s=\"file1,file2,...\"\n", envAnnualSources, envAnnualSources)
 		fmt.Print("\nUsage:\n")
 		fmt.Printf("  %s [args]\n", name)
 		fmt.Printf("  %s [flags]\n", name)
@@ -153,7 +153,7 @@ func (args *cmdArgs) parseArgs(argsIn []string) error {
 	// parse environment variables
 	args.weeklySources = parseStringSliceEnvVar(os.Getenv(envWeeklySources))
 	args.monthlySources = parseStringSliceEnvVar(os.Getenv(envMonthlySources))
-	args.multiDateSources = parseStringSliceEnvVar(os.Getenv(envMultiDateSources))
+	args.annualSources = parseStringSliceEnvVar(os.Getenv(envAnnualSources))
 
 	// run with defaults
 	if flag.NArg() == 0 {
@@ -173,7 +173,7 @@ func (args *cmdArgs) parseArgs(argsIn []string) error {
 }
 
 func (args *cmdArgs) numSources() int {
-	return len(args.weeklySources) + len(args.monthlySources) + len(args.multiDateSources)
+	return len(args.weeklySources) + len(args.monthlySources) + len(args.annualSources)
 }
 
 // parseStringSliceEnvVar parses a comma-separated environment variable into a slice of string
