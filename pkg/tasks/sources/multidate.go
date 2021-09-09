@@ -2,13 +2,14 @@ package sources
 
 import (
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
 )
+
+const dayHours int = 24 * 60 * 60
 
 // MultiDate represents a task with multiple dates
 type MultiDate struct {
@@ -43,22 +44,17 @@ func NewMultiDate(raw *RawTask) (*MultiDate, error) {
 
 // DaysFrom calculates the number of days until a task's date
 func (m *MultiDate) DaysFrom(t time.Time) int {
-	nowYear := t.Year()
-	nowMonth := t.Month()
-	nowLoc := t.Location()
+	// set the task's year as the input year
+	mTime := time.Date(t.Year(), m.month, m.day, t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), t.Location())
+	tUnix := t.Unix()
 
-	curT := time.Date(nowYear, m.month, m.day, 0, 0, 0, 0, nowLoc)
-	diff := curT.Sub(t).Hours() / 24
-	if diff < 0 {
-		if nowMonth > time.February && calendar.IsLeapYear(nowYear+1) {
-			diff += 366
-		} else if nowMonth <= time.February && calendar.IsLeapYear(nowYear) {
-			diff += 366
-		} else {
-			diff += 365
-		}
+	days := int(mTime.Unix()-tUnix) / dayHours
+	if days >= 0 {
+		return days
 	}
-	return int(math.Ceil(diff))
+	// wrap task date to the next year and recalculate day difference
+	mTime = mTime.AddDate(1, 0, 0)
+	return int(mTime.Unix()-tUnix) / dayHours
 }
 
 func (m *MultiDate) String() string {

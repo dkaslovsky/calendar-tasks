@@ -83,12 +83,20 @@ func TestMultiDateDaysFrom(t *testing.T) {
 			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
 			expected: 31,
 		},
-		"within 24 hours": {
+		"24 hours away": {
 			r: &MultiDate{
 				month: time.August,
 				day:   15,
 			},
 			now:      time.Date(2021, time.August, 14, 18, 0, 0, 0, time.UTC),
+			expected: 1,
+		},
+		"within 24 hours": {
+			r: &MultiDate{
+				month: time.August,
+				day:   15,
+			},
+			now:      time.Date(2021, time.August, 14, 18, 12, 0, 0, time.UTC),
 			expected: 1,
 		},
 		"one second away from today": {

@@ -74,16 +74,3 @@ func TestDaysInMonth(t *testing.T) {
 		})
 	}
 }
-
-func TestIsLeapYear(t *testing.T) {
-	t.Run("leap year 2024", func(t *testing.T) {
-		if !IsLeapYear(2024) {
-			t.Fatal("expected 2024 to be a leap year")
-		}
-	})
-	t.Run("not leap year 2023", func(t *testing.T) {
-		if IsLeapYear(2023) {
-			t.Fatal("expected 2023 to not be a leap year")
-		}
-	})
-}
