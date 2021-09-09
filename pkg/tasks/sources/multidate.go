@@ -23,13 +23,14 @@ func NewMultiDate(raw *RawTask) (*MultiDate, error) {
 	if len(dateParts) != 2 {
 		return &MultiDate{}, fmt.Errorf("invalid multiple date [%s]", raw.Date)
 	}
-	day, err := strconv.ParseInt(dateParts[1], 10, 0)
-	if err != nil {
-		return &MultiDate{}, fmt.Errorf("could not parse date: %v", err)
-	}
+
 	month, err := calendar.ParseMonth(dateParts[0])
 	if err != nil {
 		return &MultiDate{}, fmt.Errorf("invalid multiple date [%s]", raw.Date)
+	}
+	day, err := strconv.ParseInt(dateParts[1], 10, 0)
+	if err != nil {
+		return &MultiDate{}, fmt.Errorf("could not parse date: %v", err)
 	}
 
 	m := &MultiDate{
@@ -46,37 +47,18 @@ func (m *MultiDate) DaysFrom(t time.Time) int {
 	nowMonth := t.Month()
 	nowLoc := t.Location()
 
-	type date struct {
-		month time.Month
-		day   int
-	}
-
-	dates := []*date{
-		{
-			month: m.month,
-			day:   m.day,
-		},
-	}
-
-	curDiff := 10e8 // any large value > 366 will work
-	for _, date := range dates {
-		curT := time.Date(nowYear, date.month, date.day, 0, 0, 0, 0, nowLoc)
-		diff := curT.Sub(t).Hours() / 24
-		if diff < 0 {
-			if nowMonth > time.February && calendar.IsLeapYear(nowYear+1) {
-				diff += 366
-			} else if nowMonth <= time.February && calendar.IsLeapYear(nowYear) {
-				diff += 366
-			} else {
-				diff += 365
-			}
-		}
-		if diff < curDiff {
-			curDiff = diff
+	curT := time.Date(nowYear, m.month, m.day, 0, 0, 0, 0, nowLoc)
+	diff := curT.Sub(t).Hours() / 24
+	if diff < 0 {
+		if nowMonth > time.February && calendar.IsLeapYear(nowYear+1) {
+			diff += 366
+		} else if nowMonth <= time.February && calendar.IsLeapYear(nowYear) {
+			diff += 366
+		} else {
+			diff += 365
 		}
 	}
-
-	return int(math.Ceil(curDiff))
+	return int(math.Ceil(diff))
 }
 
 func (m *MultiDate) String() string {
