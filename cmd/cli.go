@@ -14,7 +14,7 @@ import (
 
 const (
 	name    = "calendar-tasks" // app name
-	version = "0.0.1"          // hard-code version for now
+	version = "0.1.1"          // hard-code version for now
 
 	// environment variables
 	envWeeklySources  = "CALENDAR_TASKS_WEEKLY_SOURCES"
@@ -25,11 +25,14 @@ const (
 )
 
 type cmdArgs struct {
+	days int
+	back int
+
+	version bool
+
 	weeklySources  []string
 	monthlySources []string
 	annualSources  []string
-	days           int
-	version        bool
 }
 
 // Run excutes the CLI
@@ -51,13 +54,14 @@ func Run(argsIn []string) error {
 		return fmt.Errorf("no source files provided, run `%s --help` for usage", name)
 	}
 
-	date := fixDate(time.Now())
+	date := getDate(time.Now(), args.back)
+	numDays := args.days + args.back
 
 	taskChan := make(chan tasks.Task, 1000) // buffer large enough for reasonable amount of tasks
-	done := make(chan struct{})
+	doneChan := make(chan struct{})
 
-	loader := tasks.NewLoader(taskChan, done)
-	processor := tasks.NewProcessor(date, args.days, taskChan, done)
+	loader := tasks.NewLoader(taskChan, doneChan)
+	processor := tasks.NewProcessor(date, numDays, taskChan, doneChan)
 
 	loader.AddWeeklySource(args.weeklySources...)
 	loader.AddMonthlySource(args.monthlySources...)
@@ -68,7 +72,7 @@ func Run(argsIn []string) error {
 		return err
 	}
 
-	printTasks(processor, args.days, date)
+	printTasks(processor, numDays, date)
 	return nil
 }
 
@@ -78,6 +82,10 @@ func run(loader *tasks.Loader, processor *tasks.Processor) error {
 	defer processor.Wait()
 	// start the loader and return any errors
 	return loader.Start()
+}
+
+func getDate(now time.Time, back int) time.Time {
+	return fixDate(now).AddDate(0, 0, -back)
 }
 
 // fixDate returns a time.Time object matching the year, month, day (and location) of the argument
@@ -127,11 +135,11 @@ func setUsage() func() {
 		fmt.Printf("  %s\tsource files for monthly tasks\t\tex: %s=\"file1,file2,...\"\n", envMonthlySources, envMonthlySources)
 		fmt.Printf("  %s\t\tsource files for annual tasks\t\tex: %s=\"file1,file2,...\"\n", envAnnualSources, envAnnualSources)
 		fmt.Print("\nUsage:\n")
-		fmt.Printf("  %s [args]\n", name)
-		fmt.Printf("  %s [flags]\n", name)
+		fmt.Printf("  %s [flags] [args]\n", name)
 		fmt.Printf("\nArgs:\n")
 		fmt.Printf("  days int\t number of days from today to get tasks \tdefault: 0 (today)\n")
 		fmt.Printf("\nFlags:\n")
+		fmt.Printf("  -b, --back\t number of days back from today to get tasks \tdefault: 0 (none)\n")
 		fmt.Printf("  -h, --help\t display usage information\n")
 		fmt.Printf("  -v, --version\t display version information\n")
 	}
@@ -142,6 +150,8 @@ func printVersion() {
 }
 
 func (args *cmdArgs) parseArgs(argsIn []string) error {
+	flag.IntVar(&args.back, "b", 0, "number of days back from today")
+	flag.IntVar(&args.back, "back", 0, "number of days back from today")
 	flag.BoolVar(&args.version, "v", false, "display version information")
 	flag.BoolVar(&args.version, "version", false, "display version information")
 	flag.Parse()
