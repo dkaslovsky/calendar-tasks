@@ -124,7 +124,7 @@ Months can be specified using their full name or common abbreviation.
 While task files could have been structured as yaml, json, or some other standard format, `calendar-tasks` uses the above format for readability and ease of manipulation by other commandline tools.
 The current plain-text format is easy to read and modify, but structured files might also be supported in a future version.
 
-### Why implement concurrent read task files?
+### Why implement concurrent task file reads?
 Task files are generally small and fast to read.
 The performance gain by reading them with concurrent goroutines is negligible, if it even exists.
 The reason for reading files concurrently is simply that it made `calendar-tasks` a more interesting project to develop.
