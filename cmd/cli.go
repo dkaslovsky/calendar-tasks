@@ -139,7 +139,7 @@ func setUsage() func() {
 		fmt.Printf("\nArgs:\n")
 		fmt.Printf("  days int\t number of days from today to get tasks \tdefault: 0 (today)\n")
 		fmt.Printf("\nFlags:\n")
-		fmt.Printf("  -b, --back\t number of days back from today to get tasks \tdefault: 0 (none)\n")
+		fmt.Printf("  -b, --back\t number of days back from today to get tasks \tdefault: 0\n")
 		fmt.Printf("  -h, --help\t display usage information\n")
 		fmt.Printf("  -v, --version\t display version information\n")
 	}
