@@ -30,6 +30,8 @@ $ calendar-tasks 3
 shows tasks for the next 3 days, starting with today.
 Days without tasks are omitted from the output.
 
+Tasks from previous days can be included in the output by specifying the number of days back from today to include with the `-b` or `--back` flag.
+
 `calendar-tasks` properly handles leap years and months with fewer than 31 days.
 For example, a task scheduled for the 30th of every month will not be skipped in February.
 Instead, it will be shown on March 1 for leap years and March 2 for non-leap years.
@@ -45,13 +47,13 @@ Tasks are read from files specified in comma-separated environment variables:
   CALENDAR_TASKS_ANNUAL_SOURCES		source files for annual tasks		ex: CALENDAR_TASKS_ANNUAL_SOURCES="file1,file2,..."
 
 Usage:
-  calendar-tasks [args]
-  calendar-tasks [flags]
+  calendar-tasks [flags] [args]
 
 Args:
   days int	 number of days from today to get tasks 	default: 0 (today)
 
 Flags:
+  -b, --back	 number of days back from today to get tasks 	default: 0
   -h, --help	 display usage information
   -v, --version	 display version information
 ```
@@ -122,7 +124,7 @@ Months can be specified using their full name or common abbreviation.
 While task files could have been structured as yaml, json, or some other standard format, `calendar-tasks` uses the above format for readability and ease of manipulation by other commandline tools.
 The current plain-text format is easy to read and modify, but structured files might also be supported in a future version.
 
-### Why not read the task files in serial?
+### Why implement concurrent read task files?
 Task files are generally small and fast to read.
-The performance gain by reading them in parallel is negligible, if it even exists.
-The reason for reading files in parallel is simply that it made this a more interesting project to develop.
+The performance gain by reading them with concurrent goroutines is negligible, if it even exists.
+The reason for reading files concurrently is simply that it made `calendar-tasks` a more interesting project to develop.
