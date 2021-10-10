@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -14,44 +13,23 @@ import (
 )
 
 const (
-	name    = "calendar-tasks" // app name
-	version = "0.1.1"          // hard-code version for now
-
 	// environment variables
 	envWeeklySources  = "CALENDAR_TASKS_WEEKLY_SOURCES"
 	envMonthlySources = "CALENDAR_TASKS_MONTHLY_SOURCES"
 	envAnnualSources  = "CALENDAR_TASKS_ANNUAL_SOURCES"
 
-	printTimeFormat = "[Mon] Jan 2 2006" // format for displaying dates
+	// format for displaying dates
+	printTimeFormat = "[Mon] Jan 2 2006"
 )
-
-// colors for printing
-var (
-	reset  = "\033[0m"
-	white  = "\033[97m"
-	yellow = "\033[33m"
-	purple = "\033[35m"
-
-	colorToday  = white
-	colorPast   = purple
-	colorFuture = yellow
-)
-
-// windows does not support color printing
-func init() {
-	if runtime.GOOS == "windows" {
-		reset = ""
-		colorToday = ""
-		colorPast = ""
-		colorFuture = ""
-	}
-}
 
 type cmdArgs struct {
+	name    string
+	version string
+
 	days int
 	back int
 
-	version bool
+	printVersion bool
 
 	weeklySources  []string
 	monthlySources []string
@@ -59,17 +37,19 @@ type cmdArgs struct {
 }
 
 // Run excutes the CLI
-func Run(argsIn []string) error {
-	flag.Usage = setUsage()
-
-	args := &cmdArgs{}
-	err := args.parseArgs(argsIn)
+func Run(name string, version string, argsIn []string) error {
+	args := &cmdArgs{
+		name:    name,
+		version: version,
+	}
+	flag.Usage = setUsage(args)
+	err := parseArgs(argsIn, args)
 	if err != nil {
 		return err
 	}
 
-	if args.version {
-		printVersion()
+	if args.printVersion {
+		printVersion(args)
 		return nil
 	}
 
@@ -106,30 +86,6 @@ func run(loader *tasks.Loader, processor *tasks.Processor) error {
 	return loader.Start()
 }
 
-type runDates struct {
-	today   time.Time
-	start   time.Time
-	numDays int
-}
-
-func getRunDates(now time.Time, args *cmdArgs) *runDates {
-	today := fixDate(now)
-	start := today.AddDate(0, 0, -args.back)
-	numDays := args.days + args.back
-	return &runDates{
-		today:   today,
-		start:   start,
-		numDays: numDays,
-	}
-}
-
-// fixDate returns a time.Time object matching the year, month, day (and location) of the argument
-// and sets the hour to the middle of the day to avoid any boundary cases that can occur with
-// e.g., daylight savings
-func fixDate(now time.Time) time.Time {
-	return time.Date(now.Year(), now.Month(), now.Day(), 12, 0, 0, 0, now.Location())
-}
-
 func printTasks(processor *tasks.Processor, dates *runDates) {
 	numTasks := 0
 
@@ -145,24 +101,24 @@ func printTasks(processor *tasks.Processor, dates *runDates) {
 		})
 
 		// format printing
-		var color string
+		var clr color
 		var curDayStr string
 		switch curDay := dates.start.AddDate(0, 0, day); {
 		case curDay == dates.today:
 			curDayStr = curDay.Format(printTimeFormat) + " (today)"
-			color = colorToday
+			clr = colorToday
 		case curDay.After(dates.today):
 			curDayStr = curDay.Format(printTimeFormat)
-			color = colorFuture
+			clr = colorFuture
 		default:
 			// past
 			curDayStr = curDay.Format(printTimeFormat)
-			color = colorPast
+			clr = colorPast
 		}
 
-		colorPrint(color, curDayStr, "\n")
+		colorPrint(clr, curDayStr, "\n")
 		for _, tsk := range tsks {
-			colorPrint(color, "\t-", tsk, "\n")
+			colorPrint(clr, "\t-", tsk, "\n")
 			numTasks++
 		}
 	}
@@ -172,19 +128,15 @@ func printTasks(processor *tasks.Processor, dates *runDates) {
 	}
 }
 
-func colorPrint(color string, args ...interface{}) {
-	fmt.Printf("%s%s%s", color, fmt.Sprint(args...), reset)
-}
-
-func setUsage() func() {
+func setUsage(args *cmdArgs) func() {
 	return func() {
-		fmt.Printf("%s displays upcoming scheduled tasks\n", name)
+		fmt.Printf("%s displays upcoming scheduled tasks\n", args.name)
 		fmt.Printf("\nTasks are read from files specified in comma-separated environment variables:\n")
 		fmt.Printf("  %s\t\tsource files for weekly tasks\t\tex: %s=\"file1,file2,...\"\n", envWeeklySources, envWeeklySources)
 		fmt.Printf("  %s\tsource files for monthly tasks\t\tex: %s=\"file1,file2,...\"\n", envMonthlySources, envMonthlySources)
 		fmt.Printf("  %s\t\tsource files for annual tasks\t\tex: %s=\"file1,file2,...\"\n", envAnnualSources, envAnnualSources)
 		fmt.Print("\nUsage:\n")
-		fmt.Printf("  %s [flags] [args]\n", name)
+		fmt.Printf("  %s [flags] [args]\n", args.name)
 		fmt.Printf("\nArgs:\n")
 		fmt.Printf("  days int\t number of days from today to get tasks \tdefault: 0 (today)\n")
 		fmt.Printf("\nFlags:\n")
@@ -194,18 +146,18 @@ func setUsage() func() {
 	}
 }
 
-func printVersion() {
-	fmt.Printf("%s: v%s\n", name, version)
+func printVersion(args *cmdArgs) {
+	fmt.Printf("%s: v%s\n", args.name, args.version)
 }
 
-func (args *cmdArgs) parseArgs(argsIn []string) error {
+func parseArgs(argsIn []string, args *cmdArgs) error {
 	flag.IntVar(&args.back, "b", 0, "number of days back from today")
 	flag.IntVar(&args.back, "back", 0, "number of days back from today")
-	flag.BoolVar(&args.version, "v", false, "display version information")
-	flag.BoolVar(&args.version, "version", false, "display version information")
+	flag.BoolVar(&args.printVersion, "v", false, "display version information")
+	flag.BoolVar(&args.printVersion, "version", false, "display version information")
 	flag.Parse()
 
-	if args.version {
+	if args.printVersion {
 		return nil
 	}
 
@@ -254,4 +206,28 @@ func parseStringSliceEnvVar(envStr string) []string {
 		parsed = append(parsed, strings.TrimSpace(s))
 	}
 	return parsed
+}
+
+type runDates struct {
+	today   time.Time
+	start   time.Time
+	numDays int
+}
+
+func getRunDates(now time.Time, args *cmdArgs) *runDates {
+	today := fixDate(now)
+	start := today.AddDate(0, 0, -args.back)
+	numDays := args.days + args.back
+	return &runDates{
+		today:   today,
+		start:   start,
+		numDays: numDays,
+	}
+}
+
+// fixDate returns a time.Time object matching the year, month, day (and location) of the argument
+// and sets the hour to the middle of the day to avoid any boundary cases that can occur with
+// e.g., daylight savings
+func fixDate(now time.Time) time.Time {
+	return time.Date(now.Year(), now.Month(), now.Day(), 12, 0, 0, 0, now.Location())
 }
