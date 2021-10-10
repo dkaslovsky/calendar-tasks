@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -23,6 +24,28 @@ const (
 
 	printTimeFormat = "[Mon] Jan 2 2006" // format for displaying dates
 )
+
+// colors for printing
+var (
+	reset  = "\033[0m"
+	white  = "\033[97m"
+	yellow = "\033[33m"
+	purple = "\033[35m"
+
+	colorToday  = white
+	colorPast   = purple
+	colorFuture = yellow
+)
+
+// windows does not support color printing
+func init() {
+	if runtime.GOOS == "windows" {
+		reset = ""
+		colorToday = ""
+		colorPast = ""
+		colorFuture = ""
+	}
+}
 
 type cmdArgs struct {
 	days int
@@ -54,14 +77,13 @@ func Run(argsIn []string) error {
 		return fmt.Errorf("no source files provided, run `%s --help` for usage", name)
 	}
 
-	date := getDate(time.Now(), args.back)
-	numDays := args.days + args.back
+	runDates := getRunDates(time.Now(), args)
 
 	taskChan := make(chan tasks.Task, 1000) // buffer large enough for reasonable amount of tasks
 	doneChan := make(chan struct{})
 
 	loader := tasks.NewLoader(taskChan, doneChan)
-	processor := tasks.NewProcessor(date, numDays, taskChan, doneChan)
+	processor := tasks.NewProcessor(runDates.start, runDates.numDays, taskChan, doneChan)
 
 	loader.AddWeeklySource(args.weeklySources...)
 	loader.AddMonthlySource(args.monthlySources...)
@@ -72,7 +94,7 @@ func Run(argsIn []string) error {
 		return err
 	}
 
-	printTasks(processor, numDays, date)
+	printTasks(processor, runDates)
 	return nil
 }
 
@@ -84,8 +106,21 @@ func run(loader *tasks.Loader, processor *tasks.Processor) error {
 	return loader.Start()
 }
 
-func getDate(now time.Time, back int) time.Time {
-	return fixDate(now).AddDate(0, 0, -back)
+type runDates struct {
+	today   time.Time
+	start   time.Time
+	numDays int
+}
+
+func getRunDates(now time.Time, args *cmdArgs) *runDates {
+	today := fixDate(now)
+	start := today.AddDate(0, 0, -args.back)
+	numDays := args.days + args.back
+	return &runDates{
+		today:   today,
+		start:   start,
+		numDays: numDays,
+	}
 }
 
 // fixDate returns a time.Time object matching the year, month, day (and location) of the argument
@@ -95,10 +130,10 @@ func fixDate(now time.Time) time.Time {
 	return time.Date(now.Year(), now.Month(), now.Day(), 12, 0, 0, 0, now.Location())
 }
 
-func printTasks(processor *tasks.Processor, numDays int, startDate time.Time) {
+func printTasks(processor *tasks.Processor, dates *runDates) {
 	numTasks := 0
 
-	for day := 0; day <= numDays; day++ {
+	for day := 0; day <= dates.numDays; day++ {
 		tsks, ok := processor.GetTasks(day)
 		if !ok {
 			continue
@@ -109,15 +144,25 @@ func printTasks(processor *tasks.Processor, numDays int, startDate time.Time) {
 			return strings.ToLower(tsks[i].String()) < strings.ToLower(tsks[j].String())
 		})
 
-		curDay := startDate.AddDate(0, 0, day)
-		curDayStr := curDay.Format(printTimeFormat)
-		if day == 0 {
-			curDayStr += " (today)"
+		// format printing
+		var color string
+		var curDayStr string
+		switch curDay := dates.start.AddDate(0, 0, day); {
+		case curDay == dates.today:
+			curDayStr = curDay.Format(printTimeFormat) + " (today)"
+			color = colorToday
+		case curDay.After(dates.today):
+			curDayStr = curDay.Format(printTimeFormat)
+			color = colorFuture
+		default:
+			// past
+			curDayStr = curDay.Format(printTimeFormat)
+			color = colorPast
 		}
-		fmt.Println(curDayStr)
 
+		colorPrint(color, curDayStr, "\n")
 		for _, tsk := range tsks {
-			fmt.Printf("\t-%s\n", tsk)
+			colorPrint(color, "\t-", tsk, "\n")
 			numTasks++
 		}
 	}
@@ -125,6 +170,10 @@ func printTasks(processor *tasks.Processor, numDays int, startDate time.Time) {
 	if numTasks == 0 {
 		fmt.Println("no tasks")
 	}
+}
+
+func colorPrint(color string, args ...interface{}) {
+	fmt.Printf("%s%s%s", color, fmt.Sprint(args...), reset)
 }
 
 func setUsage() func() {
@@ -178,6 +227,14 @@ func (args *cmdArgs) parseArgs(argsIn []string) error {
 		return fmt.Errorf("unparsable integer argument: %s", dayStr)
 	}
 	args.days = days
+
+	// ignore invalid values
+	if args.days < 0 {
+		args.days = 0
+	}
+	if args.back < 0 {
+		args.back = 0
+	}
 
 	return nil
 }
