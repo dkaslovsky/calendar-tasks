@@ -22,7 +22,7 @@ const (
 	printTimeFormat = "[Mon] Jan 2 2006"
 )
 
-type cmdArgs struct {
+type cliOpts struct {
 	name    string
 	version string
 
@@ -38,26 +38,32 @@ type cmdArgs struct {
 
 // Run excutes the CLI
 func Run(name string, version string, argsIn []string) error {
-	args := &cmdArgs{
+	opts := &cliOpts{
 		name:    name,
 		version: version,
 	}
-	flag.Usage = setUsage(args)
-	err := parseArgs(argsIn, args)
+
+	flag.Usage = setUsage(opts)
+
+	err := parseArgs(argsIn, opts)
 	if err != nil {
 		return err
 	}
 
-	if args.printVersion {
-		printVersion(args)
+	if opts.printVersion {
+		printVersion(opts)
 		return nil
 	}
 
-	if args.numSources() == 0 {
+	if opts.numSources() == 0 {
 		return fmt.Errorf("no source files provided, run `%s --help` for usage", name)
 	}
 
-	runDates := getRunDates(time.Now(), args)
+	return run(opts)
+}
+
+func run(opts *cliOpts) error {
+	runDates := getRunDates(time.Now(), opts)
 
 	taskChan := make(chan tasks.Task, 1000) // buffer large enough for reasonable amount of tasks
 	doneChan := make(chan struct{})
@@ -65,11 +71,11 @@ func Run(name string, version string, argsIn []string) error {
 	loader := tasks.NewLoader(taskChan, doneChan)
 	processor := tasks.NewProcessor(runDates.start, runDates.numDays, taskChan, doneChan)
 
-	loader.AddWeeklySource(args.weeklySources...)
-	loader.AddMonthlySource(args.monthlySources...)
-	loader.AddAnnualSource(args.annualSources...)
+	loader.AddWeeklySource(opts.weeklySources...)
+	loader.AddMonthlySource(opts.monthlySources...)
+	loader.AddAnnualSource(opts.annualSources...)
 
-	err = run(loader, processor)
+	err := processTasks(loader, processor)
 	if err != nil {
 		return err
 	}
@@ -78,7 +84,8 @@ func Run(name string, version string, argsIn []string) error {
 	return nil
 }
 
-func run(loader *tasks.Loader, processor *tasks.Processor) error {
+// processTasks starts the processor and loader and waits on the processor before returning
+func processTasks(loader *tasks.Loader, processor *tasks.Processor) error {
 	// start the processor and wait on it to finish before returning
 	processor.Start()
 	defer processor.Wait()
@@ -128,15 +135,15 @@ func printTasks(processor *tasks.Processor, dates *runDates) {
 	}
 }
 
-func setUsage(args *cmdArgs) func() {
+func setUsage(opts *cliOpts) func() {
 	return func() {
-		fmt.Printf("%s displays upcoming scheduled tasks\n", args.name)
+		fmt.Printf("%s displays upcoming scheduled tasks\n", opts.name)
 		fmt.Printf("\nTasks are read from files specified in comma-separated environment variables:\n")
 		fmt.Printf("  %s\t\tsource files for weekly tasks\t\tex: %s=\"file1,file2,...\"\n", envWeeklySources, envWeeklySources)
 		fmt.Printf("  %s\tsource files for monthly tasks\t\tex: %s=\"file1,file2,...\"\n", envMonthlySources, envMonthlySources)
 		fmt.Printf("  %s\t\tsource files for annual tasks\t\tex: %s=\"file1,file2,...\"\n", envAnnualSources, envAnnualSources)
 		fmt.Print("\nUsage:\n")
-		fmt.Printf("  %s [flags] [args]\n", args.name)
+		fmt.Printf("  %s [flags] [args]\n", opts.name)
 		fmt.Printf("\nArgs:\n")
 		fmt.Printf("  days int\t number of days from today to get tasks \tdefault: 0 (today)\n")
 		fmt.Printf("\nFlags:\n")
@@ -146,29 +153,29 @@ func setUsage(args *cmdArgs) func() {
 	}
 }
 
-func printVersion(args *cmdArgs) {
-	fmt.Printf("%s: v%s\n", args.name, args.version)
+func printVersion(opts *cliOpts) {
+	fmt.Printf("%s: v%s\n", opts.name, opts.version)
 }
 
-func parseArgs(argsIn []string, args *cmdArgs) error {
-	flag.IntVar(&args.back, "b", 0, "number of days back from today")
-	flag.IntVar(&args.back, "back", 0, "number of days back from today")
-	flag.BoolVar(&args.printVersion, "v", false, "display version information")
-	flag.BoolVar(&args.printVersion, "version", false, "display version information")
+func parseArgs(argsIn []string, opts *cliOpts) error {
+	flag.IntVar(&opts.back, "b", 0, "number of days back from today")
+	flag.IntVar(&opts.back, "back", 0, "number of days back from today")
+	flag.BoolVar(&opts.printVersion, "v", false, "display version information")
+	flag.BoolVar(&opts.printVersion, "version", false, "display version information")
 	flag.Parse()
 
-	if args.printVersion {
+	if opts.printVersion {
 		return nil
 	}
 
 	// parse environment variables
-	args.weeklySources = parseStringSliceEnvVar(os.Getenv(envWeeklySources))
-	args.monthlySources = parseStringSliceEnvVar(os.Getenv(envMonthlySources))
-	args.annualSources = parseStringSliceEnvVar(os.Getenv(envAnnualSources))
+	opts.weeklySources = parseStringSliceEnvVar(os.Getenv(envWeeklySources))
+	opts.monthlySources = parseStringSliceEnvVar(os.Getenv(envMonthlySources))
+	opts.annualSources = parseStringSliceEnvVar(os.Getenv(envAnnualSources))
 
 	// run with defaults
 	if flag.NArg() == 0 {
-		args.days = 0
+		opts.days = 0
 		return nil
 	}
 
@@ -178,21 +185,21 @@ func parseArgs(argsIn []string, args *cmdArgs) error {
 	if err != nil {
 		return fmt.Errorf("unparsable integer argument: %s", dayStr)
 	}
-	args.days = days
+	opts.days = days
 
 	// ignore invalid values
-	if args.days < 0 {
-		args.days = 0
+	if opts.days < 0 {
+		opts.days = 0
 	}
-	if args.back < 0 {
-		args.back = 0
+	if opts.back < 0 {
+		opts.back = 0
 	}
 
 	return nil
 }
 
-func (args *cmdArgs) numSources() int {
-	return len(args.weeklySources) + len(args.monthlySources) + len(args.annualSources)
+func (opts *cliOpts) numSources() int {
+	return len(opts.weeklySources) + len(opts.monthlySources) + len(opts.annualSources)
 }
 
 // parseStringSliceEnvVar parses a comma-separated environment variable into a slice of string
@@ -214,10 +221,10 @@ type runDates struct {
 	numDays int
 }
 
-func getRunDates(now time.Time, args *cmdArgs) *runDates {
+func getRunDates(now time.Time, opts *cliOpts) *runDates {
 	today := fixDate(now)
-	start := today.AddDate(0, 0, -args.back)
-	numDays := args.days + args.back
+	start := today.AddDate(0, 0, -opts.back)
+	numDays := opts.days + opts.back
 	return &runDates{
 		today:   today,
 		start:   start,

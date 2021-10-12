@@ -8,18 +8,18 @@ import (
 // colors for printing
 const (
 	reset  = "\033[0m"
-	white  = "\033[97m"
+	gray   = "\033[37m"
 	yellow = "\033[33m"
-	purple = "\033[35m"
+	blue   = "\033[34m"
 )
 
 type color string
 
 var (
 	colorReset  color = reset
-	colorToday  color = white
-	colorPast   color = purple
-	colorFuture color = yellow
+	colorToday  color = yellow
+	colorPast   color = blue
+	colorFuture color = gray
 )
 
 // windows does not support color printing
