@@ -55,10 +55,6 @@ func Run(name string, version string, argsIn []string) error {
 		return nil
 	}
 
-	if opts.numSources() == 0 {
-		return fmt.Errorf("no source files provided, run `%s --help` for usage", name)
-	}
-
 	return run(opts)
 }
 
@@ -135,6 +131,62 @@ func printTasks(processor *tasks.Processor, dates *runDates) {
 	}
 }
 
+func parseArgs(argsIn []string, opts *cliOpts) error {
+	flag.IntVar(&opts.back, "b", 0, "number of days back from today")
+	flag.IntVar(&opts.back, "back", 0, "number of days back from today")
+	flag.BoolVar(&opts.printVersion, "v", false, "display version information")
+	flag.BoolVar(&opts.printVersion, "version", false, "display version information")
+	flag.Parse()
+
+	if opts.printVersion {
+		return nil
+	}
+
+	if opts.back < 0 {
+		return fmt.Errorf("invalid negative value: --back %d", opts.back)
+	}
+
+	// parse environment variables
+	opts.weeklySources = parseStringSliceEnvVar(os.Getenv(envWeeklySources))
+	opts.monthlySources = parseStringSliceEnvVar(os.Getenv(envMonthlySources))
+	opts.annualSources = parseStringSliceEnvVar(os.Getenv(envAnnualSources))
+	if (len(opts.weeklySources) + len(opts.monthlySources) + len(opts.annualSources)) == 0 {
+		return fmt.Errorf("no source files provided, run `%s --help` for usage", opts.name)
+	}
+
+	// run with defaults
+	if flag.NArg() == 0 {
+		opts.days = 0
+		return nil
+	}
+
+	// parse day arg
+	dayStr := flag.Arg(0)
+	days, err := strconv.Atoi(dayStr)
+	if err != nil {
+		return fmt.Errorf("unparsable integer argument: %s", dayStr)
+	}
+	if days < 0 {
+		return fmt.Errorf("invalid negative argument: %d", days)
+	}
+	opts.days = days
+
+	return nil
+}
+
+// parseStringSliceEnvVar parses a comma-separated environment variable into a slice of string
+func parseStringSliceEnvVar(envStr string) []string {
+	parsed := []string{}
+	if envStr == "" {
+		return parsed
+	}
+	split := strings.Split(envStr, ",")
+	for _, s := range split {
+		parsed = append(parsed, strings.TrimSpace(s))
+	}
+	return parsed
+}
+
 func setUsage(opts *cliOpts) func() {
 	return func() {
 		fmt.Printf("%s displays upcoming scheduled tasks\n", opts.name)
@@ -155,64 +207,6 @@ func setUsage(opts *cliOpts) func() {
 
 func printVersion(opts *cliOpts) {
 	fmt.Printf("%s: v%s\n", opts.name, opts.version)
-}
-
-func parseArgs(argsIn []string, opts *cliOpts) error {
-	flag.IntVar(&opts.back, "b", 0, "number of days back from today")
-	flag.IntVar(&opts.back, "back", 0, "number of days back from today")
-	flag.BoolVar(&opts.printVersion, "v", false, "display version information")
-	flag.BoolVar(&opts.printVersion, "version", false, "display version information")
-	flag.Parse()
-
-	if opts.printVersion {
-		return nil
-	}
-
-	// parse environment variables
-	opts.weeklySources = parseStringSliceEnvVar(os.Getenv(envWeeklySources))
-	opts.monthlySources = parseStringSliceEnvVar(os.Getenv(envMonthlySources))
-	opts.annualSources = parseStringSliceEnvVar(os.Getenv(envAnnualSources))
-
-	// run with defaults
-	if flag.NArg() == 0 {
-		opts.days = 0
-		return nil
-	}
-
-	// parse args
-	dayStr := flag.Arg(0)
-	days, err := strconv.Atoi(dayStr)
-	if err != nil {
-		return fmt.Errorf("unparsable integer argument: %s", dayStr)
-	}
-	opts.days = days
-
-	// ignore invalid values
-	if opts.days < 0 {
-		opts.days = 0
-	}
-	if opts.back < 0 {
-		opts.back = 0
-	}
-
-	return nil
-}
-
-func (opts *cliOpts) numSources() int {
-	return len(opts.weeklySources) + len(opts.monthlySources) + len(opts.annualSources)
-}
-
-// parseStringSliceEnvVar parses a comma-separated environment variable into a slice of string
-func parseStringSliceEnvVar(envStr string) []string {
-	parsed := []string{}
-	if envStr == "" {
-		return parsed
-	}
-	split := strings.Split(envStr, ",")
-	for _, s := range split {
-		parsed = append(parsed, strings.TrimSpace(s))
-	}
-	return parsed
 }
 
 type runDates struct {
