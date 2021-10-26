@@ -71,7 +71,6 @@ func (l *Loader) Start() error {
 	}()
 
 	// start one worker for each type of task (weekly, monthly, annual, single)
-	numWorkers := 4
 	weeklyCh := make(chan string, len(l.weekly))
 	l.eg.Go(func() error {
 		return l.scan(weeklyCh, newWeeklyTask)
@@ -91,7 +90,7 @@ func (l *Loader) Start() error {
 
 	// send each file on the appropriate channel to be processed
 	wg := sync.WaitGroup{}
-	wg.Add(numWorkers)
+	wg.Add(4) // wait on the number of goroutines to be launched
 	go func() {
 		defer wg.Done()
 		for _, fp := range l.weekly {
