@@ -164,7 +164,6 @@ func TestNewAnnual(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestNewAnnualError(t *testing.T) {
@@ -189,6 +188,21 @@ func TestNewAnnualError(t *testing.T) {
 				Date: "april 1xxx",
 			},
 		},
+		"day is zero": {
+			raw: &RawTask{
+				Date: "april 0",
+			},
+		},
+		"day is negative": {
+			raw: &RawTask{
+				Date: "april -1",
+			},
+		},
+		"day is out of range": {
+			raw: &RawTask{
+				Date: "april 32",
+			},
+		},
 	}
 
 	for name, test := range tests {
@@ -200,5 +214,4 @@ func TestNewAnnualError(t *testing.T) {
 			}
 		})
 	}
-
 }

@@ -31,6 +31,9 @@ func NewAnnual(raw *RawTask) (*Annual, error) {
 	if err != nil {
 		return &Annual{}, fmt.Errorf("could not parse date: %v", err)
 	}
+	if day <= 0 || day > 31 {
+		return &Annual{}, fmt.Errorf("could not parse date: %v", err)
+	}
 
 	a := &Annual{
 		month: month,

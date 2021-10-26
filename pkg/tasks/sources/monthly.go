@@ -20,6 +20,9 @@ func NewMonthly(raw *RawTask) (*Monthly, error) {
 	if err != nil {
 		return &Monthly{}, fmt.Errorf("could not parse date: %v", err)
 	}
+	if day <= 0 || day > 31 {
+		return &Monthly{}, fmt.Errorf("could not parse date: %v", err)
+	}
 
 	m := &Monthly{
 		day:  int(day),

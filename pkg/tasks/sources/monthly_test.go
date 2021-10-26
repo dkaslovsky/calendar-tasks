@@ -134,6 +134,21 @@ func TestNewMonthlyError(t *testing.T) {
 				Date: "not a number",
 			},
 		},
+		"day is zero": {
+			raw: &RawTask{
+				Date: "0",
+			},
+		},
+		"day is negative": {
+			raw: &RawTask{
+				Date: "-1",
+			},
+		},
+		"day is out of range": {
+			raw: &RawTask{
+				Date: "32",
+			},
+		},
 	}
 
 	for name, test := range tests {
