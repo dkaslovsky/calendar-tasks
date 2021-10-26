@@ -5,9 +5,132 @@ import (
 	"time"
 )
 
-// func TestSingleDaysFrom(t *testing.T) {
-// 	t.Fatal("write tests")
-// }
+func TestSingleDaysFrom(t *testing.T) {
+	tests := map[string]struct {
+		r        *Single
+		now      time.Time
+		expected int
+	}{
+		"same day": {
+			r: &Single{
+				day:   6,
+				month: time.August,
+				year:  2021,
+			},
+			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
+			expected: 0,
+		},
+		"next day": {
+			r: &Single{
+				day:   7,
+				month: time.August,
+				year:  2021,
+			},
+			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
+			expected: 1,
+		},
+		"previous day": {
+			r: &Single{
+				day:   5,
+				month: time.August,
+				year:  2021,
+			},
+			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
+			expected: -1,
+		},
+		"previous year": {
+			r: &Single{
+				day:   6,
+				month: time.August,
+				year:  2020,
+			},
+			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
+			expected: -365,
+		},
+		"next year": {
+			r: &Single{
+				day:   6,
+				month: time.August,
+				year:  2022,
+			},
+			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
+			expected: 365,
+		},
+		"within the same day": {
+			r: &Single{
+				day:   6,
+				month: time.August,
+				year:  2021,
+			},
+			now:      time.Date(2021, time.August, 6, 9, 0, 0, 0, time.UTC),
+			expected: 0,
+		},
+		"5 years ahead (includes leap year)": {
+			r: &Single{
+				day:   6,
+				month: time.August,
+				year:  2026,
+			},
+			now:      time.Date(2021, time.August, 6, 0, 0, 0, 0, time.UTC),
+			expected: 5*365 + 1,
+		},
+		"5 years ago (includes leap year)": {
+			r: &Single{
+				day:   6,
+				month: time.August,
+				year:  2021,
+			},
+			now:      time.Date(2026, time.August, 6, 0, 0, 0, 0, time.UTC),
+			expected: -(5*365 + 1),
+		},
+		"non leap year": {
+			r: &Single{
+				day:   2,
+				month: time.March,
+				year:  2023,
+			},
+			now:      time.Date(2023, time.February, 27, 0, 0, 0, 0, time.UTC),
+			expected: 3,
+		},
+		"leap year": {
+			r: &Single{
+				day:   2,
+				month: time.March,
+				year:  2024,
+			},
+			now:      time.Date(2024, time.February, 27, 0, 0, 0, 0, time.UTC),
+			expected: 4,
+		},
+		"one second away from today": {
+			r: &Single{
+				day:   15,
+				month: time.August,
+				year:  2021,
+			},
+			now:      time.Date(2021, time.August, 14, 23, 59, 59, 0, time.UTC),
+			expected: 1,
+		},
+		"exactly same time": {
+			r: &Single{
+				day:   15,
+				month: time.August,
+				year:  2021,
+			},
+			now:      time.Date(2021, time.August, 15, 0, 0, 0, 0, time.UTC),
+			expected: 0,
+		},
+	}
+
+	for name, test := range tests {
+		test := test
+		t.Run(name, func(t *testing.T) {
+			result := test.r.DaysFrom(test.now)
+			if result != test.expected {
+				t.Fatalf("result days %d not equal to expected days %d", result, test.expected)
+			}
+		})
+	}
+}
 
 func TestNewSingle(t *testing.T) {
 	tests := map[string]struct {
