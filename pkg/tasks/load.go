@@ -23,6 +23,7 @@ type Loader struct {
 	weekly  []string
 	monthly []string
 	annual  []string
+	single  []string
 
 	ctx context.Context
 	eg  *errgroup.Group
@@ -59,13 +60,19 @@ func (l *Loader) AddAnnualSource(s ...string) {
 	l.annual = append(l.annual, s...)
 }
 
+// AddSingleSource adds the name of a source file from which single tasks are loaded
+func (l *Loader) AddSingleSource(s ...string) {
+	l.annual = append(l.annual, s...)
+}
+
 // Start launches the goroutines that load each task type
 func (l *Loader) Start() error {
 	defer func() {
 		l.done <- struct{}{}
 	}()
 
-	// start one worker for each type of task (weekly, monthly, annual)
+	// start one worker for each type of task (weekly, monthly, annual, single)
+	numWorkers := 4
 	weeklyCh := make(chan string, len(l.weekly))
 	l.eg.Go(func() error {
 		return l.scan(weeklyCh, newWeeklyTask)
@@ -78,10 +85,14 @@ func (l *Loader) Start() error {
 	l.eg.Go(func() error {
 		return l.scan(annualCh, newAnnualTask)
 	})
+	singleCh := make(chan string, len(l.single))
+	l.eg.Go(func() error {
+		return l.scan(singleCh, newSingleTask)
+	})
 
 	// send each file on the appropriate channel to be processed
 	wg := sync.WaitGroup{}
-	wg.Add(3)
+	wg.Add(numWorkers)
 	go func() {
 		defer wg.Done()
 		for _, fp := range l.weekly {
@@ -100,11 +111,18 @@ func (l *Loader) Start() error {
 			annualCh <- fp
 		}
 	}()
+	go func() {
+		defer wg.Done()
+		for _, fp := range l.single {
+			singleCh <- fp
+		}
+	}()
 	wg.Wait()
 
 	close(weeklyCh)
 	close(monthlyCh)
 	close(annualCh)
+	close(singleCh)
 	return l.eg.Wait()
 }
 
@@ -175,4 +193,8 @@ func newMonthlyTask(r *sources.RawTask) (Task, error) {
 
 func newAnnualTask(r *sources.RawTask) (Task, error) {
 	return sources.NewAnnual(r)
+}
+
+func newSingleTask(r *sources.RawTask) (Task, error) {
+	return sources.NewSingle(r)
 }

@@ -9,7 +9,7 @@ import (
 
 const (
 	name    = "calendar-tasks" // app name
-	version = "0.1.1"          // hard-code version for now
+	version = "0.2.1"          // hard-code version for now
 )
 
 func main() {

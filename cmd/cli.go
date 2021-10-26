@@ -17,6 +17,7 @@ const (
 	envWeeklySources  = "CALENDAR_TASKS_WEEKLY_SOURCES"
 	envMonthlySources = "CALENDAR_TASKS_MONTHLY_SOURCES"
 	envAnnualSources  = "CALENDAR_TASKS_ANNUAL_SOURCES"
+	envSingleSources  = "CALENDAR_TASKS_SINGLE_SOURCES"
 
 	// format for displaying dates
 	printTimeFormat = "[Mon] Jan 2 2006"
@@ -34,6 +35,7 @@ type cliOpts struct {
 	weeklySources  []string
 	monthlySources []string
 	annualSources  []string
+	singleSources  []string
 }
 
 // Run excutes the CLI
@@ -150,7 +152,8 @@ func parseArgs(argsIn []string, opts *cliOpts) error {
 	opts.weeklySources = parseStringSliceEnvVar(os.Getenv(envWeeklySources))
 	opts.monthlySources = parseStringSliceEnvVar(os.Getenv(envMonthlySources))
 	opts.annualSources = parseStringSliceEnvVar(os.Getenv(envAnnualSources))
-	if (len(opts.weeklySources) + len(opts.monthlySources) + len(opts.annualSources)) == 0 {
+	opts.singleSources = parseStringSliceEnvVar(os.Getenv(envSingleSources))
+	if (len(opts.weeklySources) + len(opts.monthlySources) + len(opts.annualSources) + len(opts.singleSources)) == 0 {
 		return fmt.Errorf("no source files provided, run `%s --help` for usage", opts.name)
 	}
 
@@ -194,6 +197,7 @@ func setUsage(opts *cliOpts) func() {
 		fmt.Printf("  %s\t\tsource files for weekly tasks\t\tex: %s=\"file1,file2,...\"\n", envWeeklySources, envWeeklySources)
 		fmt.Printf("  %s\tsource files for monthly tasks\t\tex: %s=\"file1,file2,...\"\n", envMonthlySources, envMonthlySources)
 		fmt.Printf("  %s\t\tsource files for annual tasks\t\tex: %s=\"file1,file2,...\"\n", envAnnualSources, envAnnualSources)
+		fmt.Printf("  %s\t\tsource files for single tasks\t\tex: %s=\"file1,file2,...\"\n", envSingleSources, envSingleSources)
 		fmt.Print("\nUsage:\n")
 		fmt.Printf("  %s [flags] [args]\n", opts.name)
 		fmt.Printf("\nArgs:\n")

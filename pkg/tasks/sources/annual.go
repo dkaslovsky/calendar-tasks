@@ -9,8 +9,6 @@ import (
 	"github.com/dkaslovsky/calendar-tasks/pkg/calendar"
 )
 
-const dayHours int = 24 * 60 * 60
-
 // Annual represents an annual task
 type Annual struct {
 	month time.Month
@@ -48,13 +46,14 @@ func (a *Annual) DaysFrom(t time.Time) int {
 	aTime := time.Date(t.Year(), a.month, a.day, t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), t.Location())
 	tUnix := t.Unix()
 
-	days := int(aTime.Unix()-tUnix) / dayHours
+	days := calendar.UnixToDaysFloored(aTime.Unix() - tUnix)
 	if days >= 0 {
-		return days
+		return int(days)
 	}
 	// wrap task date to the next year and recalculate day difference
 	aTime = aTime.AddDate(1, 0, 0)
-	return int(aTime.Unix()-tUnix) / dayHours
+	days = calendar.UnixToDaysFloored(aTime.Unix() - tUnix)
+	return int(days)
 }
 
 func (a *Annual) String() string {
