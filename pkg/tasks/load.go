@@ -3,7 +3,6 @@ package tasks
 import (
 	"bufio"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -145,7 +144,6 @@ func (l *Loader) scan(fileCh <-chan string, newTask newTaskF) error {
 
 func scan(ctx context.Context, r io.ReadCloser, newTask newTaskF, taskCh chan Task) error {
 	defer r.Close() //nolint
-	nTasks := 0
 
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
@@ -170,17 +168,9 @@ func scan(ctx context.Context, r io.ReadCloser, newTask newTaskF, taskCh chan Ta
 			}
 
 			taskCh <- t
-			nTasks++
 		}
 	}
-
-	if err := scanner.Err(); err != nil {
-		return err
-	}
-	if nTasks == 0 {
-		return errors.New("failed to load any tasks")
-	}
-	return nil
+	return scanner.Err()
 }
 
 func newWeeklyTask(r *sources.RawTask) (Task, error) {
