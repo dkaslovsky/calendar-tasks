@@ -32,8 +32,14 @@ func NewSingle(raw *RawTask) (*Single, error) {
 	if err != nil {
 		return &Single{}, fmt.Errorf("could not parse date: %v", err)
 	}
+	if day <= 0 || day > 31 {
+		return &Single{}, fmt.Errorf("could not parse date: %v", err)
+	}
 	year, err := strconv.ParseInt(dateParts[2], 10, 0)
 	if err != nil {
+		return &Single{}, fmt.Errorf("could not parse date: %v", err)
+	}
+	if year < 0 {
 		return &Single{}, fmt.Errorf("could not parse date: %v", err)
 	}
 
