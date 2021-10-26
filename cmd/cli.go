@@ -72,6 +72,7 @@ func run(opts *cliOpts) error {
 	loader.AddWeeklySource(opts.weeklySources...)
 	loader.AddMonthlySource(opts.monthlySources...)
 	loader.AddAnnualSource(opts.annualSources...)
+	loader.AddSingleSource(opts.singleSources...)
 
 	err := processTasks(loader, processor)
 	if err != nil {

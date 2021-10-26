@@ -62,7 +62,7 @@ func (l *Loader) AddAnnualSource(s ...string) {
 
 // AddSingleSource adds the name of a source file from which single tasks are loaded
 func (l *Loader) AddSingleSource(s ...string) {
-	l.annual = append(l.annual, s...)
+	l.single = append(l.single, s...)
 }
 
 // Start launches the goroutines that load each task type
