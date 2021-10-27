@@ -45,6 +45,7 @@ Tasks are read from files specified in comma-separated environment variables:
   CALENDAR_TASKS_WEEKLY_SOURCES		source files for weekly tasks		ex: CALENDAR_TASKS_WEEKLY_SOURCES="file1,file2,..."
   CALENDAR_TASKS_MONTHLY_SOURCES	source files for monthly tasks		ex: CALENDAR_TASKS_MONTHLY_SOURCES="file1,file2,..."
   CALENDAR_TASKS_ANNUAL_SOURCES		source files for annual tasks		ex: CALENDAR_TASKS_ANNUAL_SOURCES="file1,file2,..."
+  CALENDAR_TASKS_SINGLE_SOURCES		source files for single tasks		ex: CALENDAR_TASKS_SINGLE_SOURCES="file1,file2,..."
 
 Usage:
   calendar-tasks [flags] [args]
@@ -114,6 +115,22 @@ Mar 1/Nov 1: Change smoke alarm batteries
 ```
 Note that each line contains only one task and that dates can be repeated.
 Tasks occurring on multiple dates are indicated by using the forward-slash separator between dates: `<month day-of-the-month>/<month day-of-the-month>/...:<task>`.
+Months can be specified using their full name or common abbreviation.
+
+</br>
+
+### Single Task Source Files
+Single tasks are tasks that occur on a specific date, specified by a year, month and day.
+Single tasks, by definition, are not recurring.
+Such tasks are stored in a file with each line having the form `<year month day-of-the-month>:<task>`.
+For example,
+```
+Jan 12 2021: Pickup Alice from airport
+Mar 20 2021: Drop off dog
+Mar 20 2021: Trip to New York
+```
+Note that each line contains only one task and that dates can be repeated.
+Tasks can occur on multiple dates, separated by the usual forward-slash (`/`) delimiter, however this concept makes less sense for single tasks than for those tasks that are recurring.
 Months can be specified using their full name or common abbreviation.
 
 </br>
