@@ -13,19 +13,19 @@ Earlier versions of Go might use the `go get` command.
 </br>
 
 ## Usage
-`calendar-tasks` is a simple tool for tracking scheduled tasks from the commandline rather than on a calendar.
+`calendar-tasks` is a simple tool for tracking scheduled tasks from the commandline.
 
 To check tasks for the next `n` days, pass `n` as the argument to `calendar-tasks`.
 For example:
 ```
 $ calendar-tasks 3
 [Sun] Sep 5 2021 (today)
-    - walk dog
     - pay bills
+    - walk dog
 [Tue] Sep 7 2021
-    - workout
     - garbage night
     - return rental car
+    - workout
 ```
 shows tasks for the next 3 days, starting with today.
 Days without tasks are omitted from the output.
@@ -61,21 +61,24 @@ Flags:
 
 ## Task Source Files
 Tasks are stored in text files, the paths to which are set using environment variables.
-There are three types of supported task files: weekly, monthly, and annual (see descriptions below).
+There are four types of supported task files: weekly, monthly, annual, and single (see descriptions below).
 
-Paths to all weekly task files are stored in the `CALENDAR_TASKS_WEEKLY_SOURCES` environment variable.
+- Paths to all weekly task files are stored in the `CALENDAR_TASKS_WEEKLY_SOURCES` environment variable.
 
-Paths to all monthly task files are stored in the `CALENDAR_TASKS_MONTHLY_SOURCES` environment variable.
+- Paths to all monthly task files are stored in the `CALENDAR_TASKS_MONTHLY_SOURCES` environment variable.
 
-Paths to all annual task files are stored in the `CALENDAR_TASKS_ANNUAL_SOURCES` environment variable.
+- Paths to all annual task files are stored in the `CALENDAR_TASKS_ANNUAL_SOURCES` environment variable.
+
+- Paths to all single task files are stored in the `CALENDAR_TASKS_SINGLE_SOURCES` environment variable.
 
 Each environment variable supports specifying multiple files so that the source files can be organized however a user wishes.
 For example, it might be convenient to store each month's tasks in separate monthly task files.
+Specify multiple files with a comma-separated list.
 
 </br>
 
 ### Weekly Task Source Files
-Weekly tasks are tasks that occur on the same day each week. Such tasks are stored in a file with each line having the form `<day-of-the-week>:<task>`. For example
+Weekly tasks are tasks that occur on the same day each week. Such tasks are stored in a file with each line having the form `<day-of-the-week>: <task>`. For example
 ```
 Sun: Grocery shopping
 Sun: Play with kids
@@ -84,13 +87,13 @@ Thu: Coffee with Amy
 Wed/Sat/Sun: Hiking
 ```
 Note that each line contains only one task and that days can be repeated on multiple lines.
-Tasks occurring on multiple days are indicated by using the forward-slash separator between days: `<day-of-the-week1/day-of-the-week2>/...:<task>`.
+Tasks occurring on multiple days are indicated by using the forward-slash separator between days: `<day-of-the-week1/day-of-the-week2>/...: <task>`.
 Days can be specified using their full name or three-letter abbreviation.
 
 </br>
 
 ### Monthly Task Source Files
-Monthly tasks are tasks that occur on the same day each month. Such tasks are stored in a file with each line having the form `<day-of-the-month>:<task>`. For example
+Monthly tasks are tasks that occur on the same day each month. Such tasks are stored in a file with each line having the form `<day-of-the-month>: <task>`. For example
 ```
 3: Pay credit card bill
 15: Meet with Alice and Bob
@@ -99,13 +102,13 @@ Monthly tasks are tasks that occur on the same day each month. Such tasks are st
 15/30: Pick up paycheck
 ```
 Note that each line contains only one task and that days of the month can be repeated.
-Tasks occurring on multiple days are indicated by using the forward-slash separator between days: `<day-of-the-month>/<day-of-the-month>/...:<task>`.
+Tasks occurring on multiple days are indicated by using the forward-slash separator between days: `<day-of-the-month>/<day-of-the-month>/...: <task>`.
 
 </br>
 
 ### Annual Task Source Files
 Annual tasks are tasks that occur on a specific day of the year, specified by a month and a day.
-Such tasks are stored in a file with each line having the form `<month day-of-the-month>:<task>`.
+Such tasks are stored in a file with each line having the form `<month day-of-the-month>: <task>`.
 For example,
 ```
 Jan 12: Daughter's birthday
@@ -114,15 +117,15 @@ May 1: Renew lease
 Mar 1/Nov 1: Change smoke alarm batteries
 ```
 Note that each line contains only one task and that dates can be repeated.
-Tasks occurring on multiple dates are indicated by using the forward-slash separator between dates: `<month day-of-the-month>/<month day-of-the-month>/...:<task>`.
+Tasks occurring on multiple dates are indicated by using the forward-slash separator between dates: `<month day-of-the-month>/<month day-of-the-month>/...: <task>`.
 Months can be specified using their full name or common abbreviation.
 
 </br>
 
 ### Single Task Source Files
-Single tasks are tasks that occur on a specific date, specified by a year, month and day.
+Single tasks are tasks that occur on a specific date, specified by a year, month, and day.
 Single tasks, by definition, are not recurring.
-Such tasks are stored in a file with each line having the form `<year month day-of-the-month>:<task>`.
+Such tasks are stored in a file with each line having the form `<month day-of-the-month year>: <task>`.
 For example,
 ```
 Jan 12 2021: Pickup Alice from airport
