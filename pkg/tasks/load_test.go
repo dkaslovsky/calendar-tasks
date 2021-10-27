@@ -38,6 +38,14 @@ func TestScan(t *testing.T) {
 				},
 			},
 		},
+		"empty": {
+			r:        io.NopCloser(strings.NewReader("")),
+			expected: []Task{},
+		},
+		"empty with newlines and spaces": {
+			r:        io.NopCloser(strings.NewReader("\n  \n\n  ")),
+			expected: []Task{},
+		},
 	}
 
 	for name, test := range tests {
@@ -64,45 +72,6 @@ func TestScan(t *testing.T) {
 				t.Fatalf("unexpected non-nil error: %v", err)
 			}
 			assertEqualTestTaskSlice(t, test.expected, result)
-		})
-	}
-}
-
-func TestScanError(t *testing.T) {
-	tests := map[string]struct {
-		r io.ReadCloser
-	}{
-		"empty": {
-			r: io.NopCloser(strings.NewReader("")),
-		},
-		"empty with newlines and spaces": {
-			r: io.NopCloser(strings.NewReader("\n  \n\n  ")),
-		},
-	}
-
-	for name, test := range tests {
-		test := test
-		t.Run(name, func(t *testing.T) {
-			// setup
-			resChan := make(chan Task, 100)
-			testDone := make(chan struct{})
-			result := []Task{}
-			go func() {
-				for res := range resChan {
-					result = append(result, res)
-				}
-				testDone <- struct{}{}
-			}()
-
-			err := scan(context.Background(), test.r, newTestTask, resChan)
-
-			// shutdown
-			close(resChan)
-			<-testDone
-
-			if err == nil {
-				t.Fatal("unexpected nil error")
-			}
 		})
 	}
 }
