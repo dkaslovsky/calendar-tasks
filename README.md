@@ -13,7 +13,7 @@ Earlier versions of Go might use the `go get` command.
 </br>
 
 ## Usage
-`calendar-tasks` is a simple tool for tracking scheduled tasks from the commandline.
+`calendar-tasks` is a simple tool for tracking scheduled tasks from the command line.
 
 To check tasks for the next `n` days, pass `n` as the argument to `calendar-tasks`.
 For example:
@@ -136,12 +136,17 @@ Note that each line contains only one task and that dates can be repeated.
 Tasks can occur on multiple dates, separated by the usual forward-slash (`/`) delimiter, however this concept makes less sense for single tasks than for those tasks that are recurring.
 Months can be specified using their full name or common abbreviation.
 
+Because single tasks are not recurring, it might be desirable to remove past single tasks from time to time.
+`calendar-tasks` does not provide this functionality so as to keep its implementation minimal.
+However, since tasks are stored in plaintext files, it is easy to prune tasks using standard command line tools.
+A function for removing all single tasks prior to a specified date (and other useful functions) is available in a [gist](https://gist.github.com/dkaslovsky/d492bfb792133a46cb02c4a8c71372e3).
+
 </br>
 
 ## Implementation Notes
 
 ### Why not use a structured file format?
-While task files could have been structured as yaml, json, or some other standard format, `calendar-tasks` uses the above format for readability and ease of manipulation by other commandline tools.
+While task files could have been structured as yaml, json, or some other standard format, `calendar-tasks` uses the above format for readability and ease of manipulation by other command line tools.
 The current plain-text format is easy to read and modify, but structured files might also be supported in a future version.
 
 ### Why implement concurrent task file reads?
