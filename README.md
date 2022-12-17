@@ -32,6 +32,8 @@ Days without tasks are omitted from the output.
 
 Tasks from previous days can be included in the output by specifying the number of days back from today to include with the `-b` or `--back` flag.
 
+To start from a date other than today, pass a date string formatted as YYYY-MM-DD using the `-d` or `--date` flag.
+
 `calendar-tasks` properly handles leap years and months with fewer than 31 days.
 For example, a task scheduled for the 30th of every month will not be skipped in February.
 Instead, it will be shown on March 1 for leap years and March 2 for non-leap years.
@@ -51,12 +53,13 @@ Usage:
   calendar-tasks [flags] [args]
 
 Args:
-  days int	 number of days from today to get tasks 	default: 0 (today)
+  days int	 number of days from date to get tasks 		        default: 0 (today)
 
 Flags:
-  -b, --back	 number of days back from today to get tasks 	default: 0
-  -h, --help	 display usage information
-  -v, --version	 display version information
+  -b, --back	  number of days back from date to get tasks 	default: 0 (none)
+  -d, --date	  date in YYYY-MM-DD format 			        default: today
+  -h, --help	  display usage information
+  -v, --version	display version information
 ```
 
 ## Task Source Files
