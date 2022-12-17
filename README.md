@@ -53,13 +53,13 @@ Usage:
   calendar-tasks [flags] [args]
 
 Args:
-  days int	 number of days from date to get tasks 		        default: 0 (today)
+  days int	 number of days from date to get tasks 		default: 0 (today)
 
 Flags:
-  -b, --back	  number of days back from date to get tasks 	default: 0 (none)
-  -d, --date	  date in YYYY-MM-DD format 			        default: today
-  -h, --help	  display usage information
-  -v, --version	display version information
+  -b, --back	 number of days back from date to get tasks 	default: 0 (none)
+  -d, --date	 date in YYYY-MM-DD format 			default: today
+  -h, --help	 display usage information
+  -v, --version	 display version information
 ```
 
 ## Task Source Files
